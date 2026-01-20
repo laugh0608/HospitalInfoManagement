@@ -79,10 +79,11 @@ logs/
 # ===========================
 # 配置文件
 # ===========================
-application*.yml
-application*.yaml
-application*.properties
-!application-example.yml
+# 注释：开发阶段使用 SQLite，配置文件可以提交
+# application*.yml
+# application*.yaml
+# application*.properties
+# !application-example.yml
 
 # ===========================
 # 测试
