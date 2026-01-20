@@ -40,7 +40,12 @@ dependencies {
     implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'
     compileOnly 'org.projectlombok:lombok'
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
+
+    // 数据库驱动 - 开发环境使用 SQLite，生产环境使用 MySQL
+    runtimeOnly 'org.xerial:sqlite-jdbc:3.47.1.0'
+    runtimeOnly 'org.hibernate.orm:hibernate-community-dialects:6.6.4.Final'
     runtimeOnly 'com.mysql:mysql-connector-j'
+
     annotationProcessor 'org.projectlombok:lombok'
     testImplementation 'org.springframework.boot:spring-boot-restdocs'
     testImplementation 'org.springframework.boot:spring-boot-starter-actuator-test'
