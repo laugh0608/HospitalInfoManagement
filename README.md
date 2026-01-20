@@ -77,6 +77,7 @@ java -jar build/libs/hospital-0.0.1-SNAPSHOT.jar
 - 开发环境默认使用 SQLite，数据库文件自动创建在 `backend/db/hospital.db`
 - 如需使用 MySQL，请参考 `backend/src/main/resources/application-example.properties` 配置
 - Java 25 的本地访问警告已通过 `gradle.properties` 配置解决
+- IDEA 启动或者 Debug 的时候请执行编辑启动选项-修改选项-添加虚拟机参数：`--enable-native-access=ALL-UNNAMED`
 
 ### 前端启动
 
