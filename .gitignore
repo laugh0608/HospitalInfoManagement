@@ -1,0 +1,114 @@
+# ===========================
+# 操作系统文件
+# ===========================
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+.#*
+
+# ===========================
+# IDE
+# ===========================
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+.project
+.classpath
+.settings/
+*.sublime-*
+
+# ===========================
+# Gradle (Groovy)
+# ===========================
+backend/.gradle/
+backend/build/
+backend/out/
+backend/.gradle/
+
+# Gradle wrapper
+backend/gradle/wrapper/gradle-wrapper.jar
+backend/gradlew
+backend/gradlew.bat
+
+# 打包文件
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# Gradle cache
+backend/.gradle/
+build/
+
+# ===========================
+# 前端 - Node
+# ===========================
+frontend/node_modules/
+frontend/pnpm-lock.yaml
+frontend/yarn.lock
+frontend/package-lock.json
+
+# 编译输出
+frontend/dist/
+frontend/build/
+
+# 环境文件
+frontend/.env
+frontend/.env.local
+frontend/.env.*.local
+
+# 日志
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/pnpm-debug.log*
+
+# ===========================
+# 日志文件
+# ===========================
+*.log
+logs/
+**/logs/
+
+# ===========================
+# 配置文件
+# ===========================
+application*.yml
+application*.yaml
+application*.properties
+!application-example.yml
+
+# ===========================
+# 测试
+# ===========================
+backend/target/test-results/
+backend/target/jacoco/
+coverage/
+
+# ===========================
+# 临时文件
+# ===========================
+*.tmp
+*.temp
+temp/
+
+# ===========================
+# 数据库
+# ===========================
+*.db
+*.sqlite
+*.mdb
+
+# ===========================
+# 其他
+# =========================**
+*.cache
+*.pid
+*.seed
+*.pid.lock
