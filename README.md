@@ -9,10 +9,15 @@
 ## 技术栈
 
 ### 后端
-- **Spring Boot** - 应用框架
-- **MySQL** - 数据库
-- **MyBatis Plus** - ORM 框架
-- **其他常用依赖**
+- **Spring Boot 4.0.1** - 应用框架
+- **MySQL 8.0+** - 数据库
+- **Spring Data JPA** - ORM 框架
+- **Gradle (Groovy DSL)** - 构建工具
+- **Java 25** - 编程语言
+- **Spring Security** - 安全框架
+- **Spring Boot Actuator** - 监控管理
+- **Redis** - 缓存（可选）
+- **WebSocket** - 实时通信
 
 ### 前端
 - **Vue 3** - 前端框架
@@ -43,17 +48,28 @@ HospitalInfoManagement/
 ## 快速开始
 
 ### 环境要求
-- JDK 17+
+- JDK 25+
 - Node.js 18+
 - MySQL 8.0+
+- Gradle 8.x（可使用项目自带的 gradlew）
 
 ### 后端启动
 
 ```bash
 cd backend
-# 配置数据库连接
-# 导入数据库脚本
-./mvnw spring-boot:run
+# 1. 配置数据库连接
+# 复制 src/main/resources/application-example.properties 为 application.properties
+# 编辑 application.properties 配置数据库信息
+
+# 2. 导入数据库脚本
+# 执行 db/ 目录下的 SQL 脚本创建数据库表
+
+# 3. 启动应用
+./gradlew bootRun
+
+# 或构建后运行
+./gradlew build
+java -jar build/libs/hospital-0.0.1-SNAPSHOT.jar
 ```
 
 ### 前端启动

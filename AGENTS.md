@@ -61,7 +61,7 @@ npx vue-tsc                           # 严格类型检查
 ```
 src/main/java/com/graduation/hospital/
 ├── entity/           # JPA 实体类
-├── mapper/           # MyBatis 映射器
+├── repository/       # Spring Data JPA 仓储
 ├── service/          # 业务逻辑
 ├── controller/       # REST API
 ├── dto/              # 数据传输对象
@@ -87,9 +87,11 @@ src/main/java/com/graduation/hospital/
 
 **其他规范：**
 - 写操作必须添加 `@Transactional`
-- MyBatis 映射器参数必须添加 `@Param`
+- Repository 接口继承 `JpaRepository<Entity, ID>` 或 `CrudRepository<Entity, ID>`
 - 使用 Lombok `@Slf4j` 记录日志
 - 方法尽量控制在 50 行以内
+- 实体类必须使用 JPA 注解（`@Entity`、`@Table`、`@Column`）
+- 主键使用 `@Id` 和 `@GeneratedValue(strategy = GenerationType.IDENTITY)`
 
 ---
 
@@ -139,11 +141,13 @@ src/
 
 ## 项目约定
 
-**数据库（MySQL + MyBatis Plus）：**
+**数据库（MySQL + Spring Data JPA）：**
 - 表名：`snake_case`（例如：`patient_info`）
-- 实体字段：`camelCase`（MyBatis Plus 自动映射）
-- 非数据库字段使用 `@TableField(exist = false)`
-- 主键：`Long id` 配合 `@TableId(type = IdType.AUTO)`
+- 实体字段：`camelCase`（JPA 自动映射）
+- 非持久化字段使用 `@Transient`
+- 主键：`Long id` 配合 `@Id @GeneratedValue(strategy = GenerationType.IDENTITY)`
+- 关联关系使用 `@OneToMany`、`@ManyToOne`、`@ManyToMany` 等注解
+- 使用 `@Column` 注解显式指定列名映射（可选但推荐）
 
 **API 响应格式：**
 ```json

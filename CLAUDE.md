@@ -5,7 +5,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## 项目概述
 
 HospitalInfoManagement 是一个社区医院病人信息管理系统，基于以下技术栈构建：
-- **后端**：Spring Boot 4.0.1、MySQL、MyBatis Plus、Java 25
+- **后端**：Spring Boot 4.0.1、MySQL、JPA + Spring Data、Java 25、Gradle (Groovy DSL)
 - **前端**：Vue 3、TypeScript、Vite、Element Plus（规划中）
 
 ## 构建命令
@@ -40,7 +40,7 @@ npx vue-tsc                     # TypeScript 类型检查
 ```
 src/main/java/com/graduation/hospital/
 ├── entity/           # JPA 实体类（数据库表映射）
-├── mapper/           # MyBatis 映射器
+├── repository/       # Spring Data JPA 仓储接口
 ├── service/          # 业务逻辑层
 ├── controller/       # REST API 控制器
 ├── dto/              # 数据传输对象
@@ -71,9 +71,10 @@ src/
 
 ### 数据库规范
 - 表名使用 `snake_case`（例如：`patient_info`）
-- 实体字段使用 `camelCase`（MyBatis Plus 自动映射）
-- 非数据库字段使用 `@TableField(exist = false)`
-- 主键：`Long id` 配合 `@TableId(type = IdType.AUTO)`
+- 实体字段使用 `camelCase`（JPA 自动映射）
+- 主键：`Long id` 配合 `@Id @GeneratedValue(strategy = GenerationType.IDENTITY)`
+- 非持久化字段使用 `@Transient` 注解
+- 关联关系使用 `@OneToMany`、`@ManyToOne` 等 JPA 注解
 
 ### Git 提交规范
 
@@ -108,9 +109,10 @@ src/
 ### Java
 - 使用 Lombok `@Slf4j` 进行日志记录
 - 写操作必须添加 `@Transactional` 注解
-- Mapper 方法参数需添加 `@Param` 注解
+- Repository 接口继承 `JpaRepository` 或 `CrudRepository`
 - 使用 `List<>` 而非原始 `ArrayList`
 - 时间类型使用 `LocalDateTime`
+- 实体类使用 JPA 注解（`@Entity`、`@Table`、`@Column` 等）
 
 ### Vue 3 + TypeScript
 - 使用 `<script setup lang="ts">` 语法
