@@ -36,9 +36,10 @@ out/
 .vscode/
 
 ### SQLite 数据库文件 ###
-*.db
-*.sqlite
-*.sqlite3
+db/*.db
+db/*.sqlite
+db/*.sqlite3
+*.db-journal
 
 ### 日志文件 ###
 logs/
