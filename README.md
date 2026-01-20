@@ -50,27 +50,32 @@ HospitalInfoManagement/
 ### 环境要求
 - JDK 25+
 - Node.js 18+
-- MySQL 8.0+
-- Gradle 8.x（可使用项目自带的 gradlew）
+- SQLite（开发环境，自动创建）/ MySQL 8.0+（生产环境）
 
 ### 后端启动
 
 ```bash
 cd backend
-# 1. 配置数据库连接
-# 复制 src/main/resources/application-example.properties 为 application.properties
-# 编辑 application.properties 配置数据库信息
 
-# 2. 导入数据库脚本
-# 执行 db/ 目录下的 SQL 脚本创建数据库表
+# 1. 首次使用需要给 gradlew 添加执行权限（Linux/Mac）
+chmod +x gradlew
 
-# 3. 启动应用
+# 2. Gradle 会自动下载依赖（首次运行较慢）
+# Windows 使用：gradlew.bat bootRun
+# Linux/Mac 使用：./gradlew bootRun
+
+# 3. 启动应用（开发环境使用 SQLite，无需额外配置数据库）
 ./gradlew bootRun
 
-# 或构建后运行
+# 或者先构建再运行
 ./gradlew build
 java -jar build/libs/hospital-0.0.1-SNAPSHOT.jar
 ```
+
+**说明：**
+- 项目使用 Gradle Wrapper，无需手动安装 Gradle
+- 开发环境默认使用 SQLite，数据库文件自动创建在 `backend/db/hospital.db`
+- 如需使用 MySQL，请参考 `backend/src/main/resources/application-example.properties` 配置
 
 ### 前端启动
 
