@@ -76,6 +76,7 @@ java -jar build/libs/hospital-0.0.1-SNAPSHOT.jar
 - 项目使用 Gradle Wrapper，无需手动安装 Gradle
 - 开发环境默认使用 SQLite，数据库文件自动创建在 `backend/db/hospital.db`
 - 如需使用 MySQL，请参考 `backend/src/main/resources/application-example.properties` 配置
+- Java 25 的本地访问警告已通过 `gradle.properties` 配置解决
 
 ### 前端启动
 

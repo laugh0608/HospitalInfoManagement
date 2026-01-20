@@ -68,3 +68,8 @@ tasks.named('asciidoctor') {
     inputs.dir snippetsDir
     dependsOn test
 }
+
+// 配置 bootRun 任务的 JVM 参数（Java 25 支持 SQLite 本地库访问）
+tasks.named('bootRun') {
+    jvmArgs = ['--enable-native-access=ALL-UNNAMED']
+}
