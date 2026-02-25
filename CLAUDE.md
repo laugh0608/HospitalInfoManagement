@@ -217,6 +217,30 @@ src/
 - **版本标签**：使用 Git Tag 标记发布版本，格式：`vYY.M.N`
 - **版本记录**：每次发布需在 CHANGELOG.md 中记录变更内容
 
+### 代码注释规范
+
+- **原则**：在关键位置添加中文注释，保持代码易读性和可维护性
+- **需要加注释的场景**：
+  - 业务逻辑复杂的地方，说明业务规则
+  - 难以理解的算法或计算逻辑
+  - 特殊处理或边界条件
+  - 重要的配置或常量，说明其含义
+  - 公共方法或接口，说明其用途和参数
+- **不需要加注释的场景**：
+  - 简单的 getter/setter
+  - 显而易见的代码逻辑
+  - 纯粹的模板代码
+- **示例**：
+
+```java
+// 病人编号格式：P + 年月日 + 5位序号
+private String generatePatientNo() {
+    String date = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+    long sequence = patientNoCounter.incrementAndGet();
+    return "P" + date + String.format("%05d", sequence % 100000);
+}
+```
+
 ---
 
 ## 数据库配置

@@ -165,6 +165,31 @@ log.error("系统异常: ", e);
 - 超过 30 行应考虑拆分
 - 避免深层嵌套（不超过 3 层）
 
+#### 2.3.5 代码注释规范
+
+- **原则**：在关键位置添加中文注释，保持代码易读性和可维护性，**不要所有的地方都加注释**
+- **需要加注释的场景**：
+  - 业务逻辑复杂的地方，说明业务规则
+  - 难以理解的算法或计算逻辑
+  - 特殊处理或边界条件
+  - 重要的配置或常量，说明其含义
+  - 公共方法或接口，说明其用途和参数
+  - 编号生成规则、状态流转等业务逻辑
+- **不需要加注释的场景**：
+  - 简单的 getter/setter
+  - 显而易见的代码逻辑
+  - 纯粹的模板代码
+  - 单行显而易见的功能
+
+```java
+// 病人编号格式：P + 年月日 + 5位序号
+private String generatePatientNo() {
+    String date = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+    long sequence = patientNoCounter.incrementAndGet();
+    return "P" + date + String.format("%05d", sequence % 100000);
+}
+```
+
 ### 2.4 API 设计规范
 
 #### 2.4.1 RESTful 风格
@@ -747,7 +772,62 @@ router.beforeEach((to, from, next) => {
 
 ---
 
-## 6. 代码审查规范
+## 6. API 文档规范
+
+### 6.1 Scalar (Swagger) 集成
+
+项目使用 **Scalar** 作为 API 文档工具，它是 Spring Boot 4.0 官方推荐的 Swagger 替代方案。
+
+#### 6.1.1 依赖配置
+
+在 `build.gradle` 中添加依赖：
+
+```groovy
+implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.5'
+```
+
+#### 6.1.2 访问地址
+
+| 工具 | 地址 |
+|------|------|
+| Scalar UI | `http://localhost:8080/scalar` |
+| Swagger UI | `http://localhost:8080/swagger-ui.html` |
+| OpenAPI JSON | `http://localhost:8080/v3/api-docs` |
+
+#### 6.1.3 配置类
+
+在 `config/ScalarConfig.java` 中配置 API 文档信息：
+
+```java
+@Configuration
+public class ScalarConfig {
+
+    @Bean
+    public OpenAPI customOpenAPI() {
+        return new OpenAPI()
+                .info(new Info()
+                        .title("HospitalInfoManagement API")
+                        .version("v26.2.1")
+                        .description("社区医院病人信息管理系统 REST API 文档")
+                        .contact(new Contact()
+                                .name("Hospital 开发组")
+                                .email("laugh0608@foxmail.com")));
+    }
+}
+```
+
+#### 6.1.4 安全配置
+
+在 `SecurityConfig.java` 中允许访问 API 文档相关路径：
+
+```java
+// 允许访问 Scalar/Swagger UI
+.ignoringRequestMatchers("/swagger-ui/**", "/swagger-ui.html", "/scalar/**", "/v3/api-docs/**");
+```
+
+---
+
+## 7. 代码审查规范
 
 ### 6.1 审查要点
 
