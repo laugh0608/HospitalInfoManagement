@@ -1,13 +1,22 @@
 package com.graduation.hospital.controller;
 
 import com.graduation.hospital.common.Result;
+import com.graduation.hospital.common.util.JwtUtil;
+import com.graduation.hospital.dto.AuthResponse;
+import com.graduation.hospital.dto.LoginRequest;
+import com.graduation.hospital.entity.SysRole;
 import com.graduation.hospital.entity.SysUser;
 import com.graduation.hospital.service.SysUserService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/api/v1/users")
@@ -15,7 +24,40 @@ import java.util.List;
 public class SysUserController {
 
     private final SysUserService userService;
+    private final JwtUtil jwtUtil;
 
+    /**
+     * 用户登录
+     */
+    @PostMapping("/login")
+    public Result<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
+        // 验证用户名密码
+        SysUser user = userService.login(request.getUsername(), request.getPassword());
+
+        // 生成 JWT Token
+        Set<String> roles = new HashSet<>();
+        if (user.getRoles() != null) {
+            for (SysRole role : user.getRoles()) {
+                roles.add(role.getCode());
+            }
+        }
+
+        String token = jwtUtil.generateToken(user.getUsername(), user.getId());
+
+        AuthResponse response = AuthResponse.builder()
+                .token(token)
+                .username(user.getUsername())
+                .userId(user.getId())
+                .roles(roles)
+                .expiration(jwtUtil.getExpiration())
+                .build();
+
+        return Result.success(response);
+    }
+
+    /**
+     * 用户注册
+     */
     @PostMapping("/register")
     public Result<SysUser> register(@RequestBody SysUser user) {
         SysUser saved = userService.register(user);
@@ -23,6 +65,22 @@ public class SysUserController {
         return Result.success(saved);
     }
 
+    /**
+     * 获取当前登录用户信息
+     */
+    @GetMapping("/me")
+    public Result<SysUser> getCurrentUser() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String username = auth.getName();
+
+        SysUser user = userService.getUserByUsername(username);
+        user.setPassword(null);
+        return Result.success(user);
+    }
+
+    /**
+     * 根据ID获取用户
+     */
     @GetMapping("/{id}")
     public Result<SysUser> getUserById(@PathVariable Long id) {
         SysUser user = userService.getUserById(id);
@@ -30,6 +88,9 @@ public class SysUserController {
         return Result.success(user);
     }
 
+    /**
+     * 获取所有用户（仅管理员）
+     */
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
     public Result<List<SysUser>> getAllUsers() {
@@ -38,6 +99,9 @@ public class SysUserController {
         return Result.success(users);
     }
 
+    /**
+     * 更新用户
+     */
     @PutMapping("/{id}")
     public Result<SysUser> updateUser(@PathVariable Long id, @RequestBody SysUser user) {
         SysUser updated = userService.updateUser(id, user);
@@ -45,6 +109,9 @@ public class SysUserController {
         return Result.success(updated);
     }
 
+    /**
+     * 删除用户（仅管理员）
+     */
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public Result<Void> deleteUser(@PathVariable Long id) {
@@ -52,16 +119,25 @@ public class SysUserController {
         return Result.success();
     }
 
+    /**
+     * 检查用户名是否存在
+     */
     @GetMapping("/check/username")
     public Result<Boolean> checkUsername(@RequestParam String username) {
         return Result.success(userService.existsByUsername(username));
     }
 
+    /**
+     * 检查邮箱是否存在
+     */
     @GetMapping("/check/email")
     public Result<Boolean> checkEmail(@RequestParam String email) {
         return Result.success(userService.existsByEmail(email));
     }
 
+    /**
+     * 启用用户（仅管理员）
+     */
     @PostMapping("/{id}/enable")
     @PreAuthorize("hasRole('ADMIN')")
     public Result<Void> enableUser(@PathVariable Long id) {
@@ -69,6 +145,9 @@ public class SysUserController {
         return Result.success();
     }
 
+    /**
+     * 禁用用户（仅管理员）
+     */
     @PostMapping("/{id}/disable")
     @PreAuthorize("hasRole('ADMIN')")
     public Result<Void> disableUser(@PathVariable Long id) {
