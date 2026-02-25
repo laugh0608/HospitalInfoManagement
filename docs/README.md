@@ -8,7 +8,12 @@
 docs/
 ├── README.md                    # 本文件
 ├── project-plan.md              # 项目规划文档
-└── development-logs/            # 开发日志（按周划分）
+├── database-design.md           # 数据库设计文档
+├── api-design.md                # API 接口设计文档
+├── security-config.md           # 安全配置说明
+├── run-config.md                # 运行配置说明
+├── idea-encoding-fix.md         # IDEA 编码修复
+├── development-logs/            # 开发日志（按周划分）
     ├── README.md                # 开发日志说明
     └── 2026-W03.md              # 示例：2026年第3周开发日志
 ```
