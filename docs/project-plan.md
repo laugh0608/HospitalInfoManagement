@@ -89,6 +89,7 @@
 - **前端**：Vue 3 + TypeScript + Vite + Element Plus
 - **数据库**：SQLite (开发) / MySQL (生产)
 - **安全**：Spring Security
+- **日志**：Logback（文件）+ 自研日志库（SQLite 分表存储）
 - **其他**：Redis、WebSocket
 
 ### 架构设计
@@ -514,3 +515,4 @@ frontend/src/
 | 2026-02-25 | v1.0 | 完善架构规划文档，补充数据库设计、后端架构、前端架构、安全设计、业务流程、开发计划等内容 | - |
 | 2026-02-25 | v1.1 | 新增数据库设计文档（database-design.md）和 API 设计文档（api-design.md） | - |
 | 2026-02-25 | v26.2.1 | 完善版本号规范；完成后端核心架构（Entity、Repository、Service、Controller） | - |
+| 2026-02-25 | v26.2.2 | 添加数据库日志服务，支持分表存储（DbLoggingService、DbLoggingFilter、SqlLoggingInterceptor） | - |
