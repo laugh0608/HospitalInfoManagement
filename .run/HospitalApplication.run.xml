@@ -1,0 +1,11 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="HospitalApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+    <option name="FRAME_DEACTIVATION_UPDATE_POLICY" value="UpdateClassesAndResources" />
+    <module name="hospital.main" />
+    <option name="SPRING_BOOT_MAIN_CLASS" value="com.graduation.hospital.HospitalApplication" />
+    <option name="VM_PARAMETERS" value="--enable-native-access=ALL-UNNAMED -Dfile.encoding=UTF-8" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>
