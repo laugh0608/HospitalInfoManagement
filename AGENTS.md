@@ -244,4 +244,4 @@ src/
 
 - 快速入门指南：[CLAUDE.md](CLAUDE.md)
 - 项目介绍：[README.md](README.md)
-- Spring Boot 参考文档：[backend/HELP.md](backend/HELP.md)
+- Spring Boot 参考文档：[HELP.md](HELP.md)

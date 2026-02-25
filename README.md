@@ -39,9 +39,10 @@
 
 ```
 HospitalInfoManagement/
-├── backend/          # Spring Boot 后端项目
+├── src/              # Spring Boot 后端源码
 ├── frontend/         # Vue 3 前端项目
 ├── docs/             # 项目文档
+├── build.gradle      # Gradle 构建配置
 └── README.md         # 项目说明
 ```
 
@@ -72,8 +73,8 @@ java -jar build/libs/hospital-0.0.1-SNAPSHOT.jar
 
 **说明：**
 - 项目使用 Gradle Wrapper，无需手动安装 Gradle
-- 开发环境默认使用 SQLite，数据库文件自动创建在 `backend/db/hospital.db`
-- 如需使用 MySQL，请参考 `backend/src/main/resources/application-example.properties` 配置
+- 开发环境默认使用 SQLite，数据库文件自动创建在 `db/hospital.db`
+- 如需使用 MySQL，请参考 `src/main/resources/application-example.properties` 配置
 - Java 25 的本地访问警告已通过 `gradle.properties` 配置解决
 - IDEA 启动或者 Debug 的时候请执行编辑启动选项-修改选项-添加虚拟机参数：`--enable-native-access=ALL-UNNAMED`
 

@@ -110,8 +110,8 @@ IDEA 会自动识别这个配置（需要安装 EditorConfig 插件，IDEA 2020+
 ### Q3: 为什么有些中文还是乱码？
 **A:** 如果之前选择了 "Convert"，文件内容可能已经损坏。需要从 Git 恢复：
 ```bash
-git checkout -- backend/src/main/resources/application.properties
-git checkout -- backend/src/main/resources/application-example.properties
+git checkout -- src/main/resources/application.properties
+git checkout -- src/main/resources/application-example.properties
 ```
 
 ### Q4: Properties 文件可以用 UTF-8 吗？

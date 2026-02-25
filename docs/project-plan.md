@@ -503,7 +503,7 @@ frontend/src/
 | `CLAUDE.md` | 快速入门指南 |
 | `AGENTS.md` | AI 编码规范 |
 | `README.md` | 项目介绍 |
-| `backend/HELP.md` | Spring Boot 参考文档 |
+| `HELP.md` | Spring Boot 参考文档 |
 | `database-design.md` | 数据库设计文档 |
 | `api-design.md` | API 接口设计文档 |
 
