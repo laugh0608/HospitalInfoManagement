@@ -7,15 +7,23 @@ import java.time.Instant;
 
 /**
  * 统一 API 响应封装
+ * 所有 REST API 返回值使用此格式
  */
 @Data
 public class Result<T> implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
+    /** 状态码（200=成功，其他参考错误码规范） */
     private int code;
+
+    /** 提示信息 */
     private String message;
+
+    /** 响应数据 */
     private T data;
+
+    /** 时间戳（Unix 秒） */
     private long timestamp;
 
     public Result() {
