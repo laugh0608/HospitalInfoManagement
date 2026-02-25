@@ -823,9 +823,9 @@ router.beforeEach((to, from, next) => {
 
 ## 6. API 文档规范
 
-### 6.1 Scalar (Swagger) 集成
+### 6.1 Swagger 集成
 
-项目使用 **Scalar** 作为 API 文档工具，它是 Spring Boot 4.0 官方推荐的 Swagger 替代方案。
+项目使用 **Swagger (springdoc-openapi)** 作为 API 文档工具。
 
 #### 6.1.1 依赖配置
 
@@ -839,17 +839,16 @@ implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.5'
 
 | 工具 | 地址 |
 |------|------|
-| Scalar UI | `http://localhost:8080/scalar` |
 | Swagger UI | `http://localhost:8080/swagger-ui.html` |
 | OpenAPI JSON | `http://localhost:8080/v3/api-docs` |
 
 #### 6.1.3 配置类
 
-在 `config/ScalarConfig.java` 中配置 API 文档信息：
+在 `config/SwaggerConfig.java` 中配置 API 文档信息：
 
 ```java
 @Configuration
-public class ScalarConfig {
+public class SwaggerConfig {
 
     @Bean
     public OpenAPI customOpenAPI() {
@@ -870,11 +869,10 @@ public class ScalarConfig {
 在 `SecurityConfig.java` 中允许访问 API 文档相关路径：
 
 ```java
-// 允许访问 Scalar/Swagger UI
+// 允许访问 Swagger UI
 .ignoringRequestMatchers(
     "/swagger-ui/**",
     "/swagger-ui.html",
-    "/scalar/**",
     "/v3/api-docs/**"
 );
 ```
@@ -891,7 +889,7 @@ springdoc.group-configs[1].group=v2
 springdoc.group-configs[1].paths-to-match=/api/v2/**
 ```
 
-在 Scalar UI 中可以通过下拉菜单切换不同版本的 API 文档。
+在 Swagger UI 中可以通过下拉菜单切换不同版本的 API 文档。
 
 ---
 

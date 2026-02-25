@@ -55,7 +55,6 @@ public class SecurityConfig {
                     "/api/v1/users/register",
                     "/swagger-ui/**",
                     "/swagger-ui.html",
-                    "/scalar/**",
                     "/v3/api-docs/**"
                 ).permitAll()
                 // 其他请求需要认证

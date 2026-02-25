@@ -8,11 +8,11 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * Scalar (Swagger) API 文档配置
+ * Swagger API 文档配置
  * 支持多版本 API 文档展示
  */
 @Configuration
-public class ScalarConfig {
+public class SwaggerConfig {
 
     @Bean
     public OpenAPI customOpenAPI() {
