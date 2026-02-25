@@ -233,6 +233,48 @@ POST   /api/patient/create    # URL 包含动作
 | PATCH | 部分更新资源 | 否 |
 | DELETE | 删除资源 | 是 |
 
+#### 2.4.4 API 版本控制
+
+项目采用 **URL 路径版本控制** 方式，在 URL 中直接指定 API 版本。
+
+| 版本 | 路径 | 说明 |
+|------|------|------|
+| v1 | `/api/v1/...` | 默认版本，生产环境使用 |
+| v2 | `/api/v2/...` | 新功能版本，测试中或暂未上线 |
+
+```yaml
+# v1 版本（默认）
+GET    /api/v1/patients
+POST   /api/v1/patients
+GET    /api/v1/patients/1
+
+# v2 版本（新功能）
+GET    /api/v2/patients
+POST   /api/v2/patients/export   # v2 新增的导出功能
+```
+
+**版本管理原则：**
+- 所有新功能默认添加到 v2
+- v1 保持稳定，不轻易变更
+- 新功能在 v2 测试稳定后，可升级到 v1
+- 旧版本 API 至少保留 3 个月再考虑废弃
+
+**Controller 配置：**
+
+```java
+@RestController
+@RequestMapping("/api/v1/patients")
+public class PatientController {
+    // v1 版本 API
+}
+
+@RestController
+@RequestMapping("/api/v2/patients")
+public class PatientV2Controller {
+    // v2 版本 API，包含新功能
+}
+```
+
 ### 2.5 请求响应规范
 
 #### 2.5.1 统一响应格式
@@ -822,14 +864,33 @@ public class ScalarConfig {
 
 ```java
 // 允许访问 Scalar/Swagger UI
-.ignoringRequestMatchers("/swagger-ui/**", "/swagger-ui.html", "/scalar/**", "/v3/api-docs/**");
+.ignoringRequestMatchers(
+    "/swagger-ui/**",
+    "/swagger-ui.html",
+    "/scalar/**",
+    "/v3/api-docs/**"
+);
 ```
+
+#### 6.1.5 多版本 API 配置
+
+项目支持同时展示 v1 和 v2 版本的 API 文档：
+
+```properties
+# application.properties 配置
+springdoc.group-configs[0].group=v1
+springdoc.group-configs[0].paths-to-match=/api/v1/**
+springdoc.group-configs[1].group=v2
+springdoc.group-configs[1].paths-to-match=/api/v2/**
+```
+
+在 Scalar UI 中可以通过下拉菜单切换不同版本的 API 文档。
 
 ---
 
 ## 7. 代码审查规范
 
-### 6.1 审查要点
+### 7.1 审查要点
 
 | 类别 | 审查内容 |
 |------|----------|
@@ -839,7 +900,7 @@ public class ScalarConfig {
 | 性能 | 数据库查询、循环优化 |
 | 测试 | 是否有必要的单元测试 |
 
-### 6.2 审查清单
+### 7.2 审查清单
 
 - [ ] 代码符合本文档规范
 - [ ] 已添加必要的注释

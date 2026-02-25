@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/medical-records")
+@RequestMapping("/api/v1/medical-records")
 @RequiredArgsConstructor
 public class MedicalRecordController {
 

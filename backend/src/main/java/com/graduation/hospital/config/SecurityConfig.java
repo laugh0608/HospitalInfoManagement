@@ -29,7 +29,15 @@ public class SecurityConfig {
                 // 针对非安全方法（GET, HEAD, TRACE, OPTIONS）不需要 CSRF token
                 // 对于修改数据的方法（POST, PUT, DELETE, PATCH）需要 CSRF token
                 // 可以通过 Cookie 自动处理
-                .ignoringRequestMatchers("/api/hello")  // 测试接口暂时忽略 CSRF
+                .ignoringRequestMatchers(
+                    "/api/hello",
+                    "/api/v1/hello",
+                    "/api/v2/hello",
+                    "/swagger-ui/**",
+                    "/swagger-ui.html",
+                    "/scalar/**",
+                    "/v3/api-docs/**"
+                )
             )
             .cors(cors -> cors.configurationSource(corsConfigurationSource()));
 
