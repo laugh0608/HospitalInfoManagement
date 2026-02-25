@@ -33,6 +33,14 @@ public class RequestLoggingFilter implements Filter {
             throws IOException, ServletException {
 
         HttpServletRequest httpRequest = (HttpServletRequest) request;
+        String uri = httpRequest.getRequestURI();
+
+        // 跳过 /api 路径（由 JwtAuthenticationFilter 记录）
+        if (uri.startsWith("/api/")) {
+            chain.doFilter(request, response);
+            return;
+        }
+
         HttpServletResponse httpResponse = (HttpServletResponse) response;
 
         // 生成请求 ID

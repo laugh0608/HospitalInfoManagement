@@ -2,6 +2,11 @@
 <configuration>
     <!-- 定义日志文件存储路径 -->
     <property name="LOG_PATH" value="logs"/>
+    <property name="APP_LOG_PATH" value="logs/application"/>
+    <property name="ERROR_LOG_PATH" value="logs/error"/>
+    <property name="AUDIT_LOG_PATH" value="logs/audit"/>
+    <property name="SQL_LOG_PATH" value="logs/sql"/>
+    <property name="ACCESS_LOG_PATH" value="logs/access"/>
     <property name="LOG_FILE" value="hospital"/>
 
     <!-- 彩色日志依赖的渲染类 -->
@@ -17,6 +22,10 @@
     <property name="FILE_LOG_PATTERN"
               value="${FILE_LOG_PATTERN:-%d{yyyy-MM-dd HH:mm:ss.SSS} ${LOG_LEVEL_PATTERN:-%5p} [%X{requestId}] ${PID:- } --- [%t] %-40.40logger{39} : %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}}"/>
 
+    <!-- 访问日志格式 -->
+    <property name="ACCESS_LOG_PATTERN"
+              value="%d{yyyy-MM-dd HH:mm:ss.SSS} %a %l %u [%t] &quot;%r&quot; %s %b %D &quot;%{Referer}i&quot; &quot;%{User-Agent}i&quot;%n"/>
+
     <!-- ========== 控制台输出 ========== -->
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
@@ -27,14 +36,12 @@
 
     <!-- ========== 应用日志文件 ========== -->
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${LOG_PATH}/${LOG_FILE}.log</file>
         <encoder>
             <pattern>${FILE_LOG_PATTERN}</pattern>
             <charset>UTF-8</charset>
         </encoder>
-        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
-            <fileNamePattern>${LOG_PATH}/${LOG_FILE}-%d{yyyy-MM-dd}.%i.log</fileNamePattern>
-            <maxFileSize>10MB</maxFileSize>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${APP_LOG_PATH}/%d{yyyyMMdd}.log</fileNamePattern>
             <maxHistory>30</maxHistory>
             <totalSizeCap>1GB</totalSizeCap>
         </rollingPolicy>
@@ -42,7 +49,6 @@
 
     <!-- ========== 错误日志文件 ========== -->
     <appender name="ERROR_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${LOG_PATH}/${LOG_FILE}-error.log</file>
         <encoder>
             <pattern>${FILE_LOG_PATTERN}</pattern>
             <charset>UTF-8</charset>
@@ -52,9 +58,8 @@
             <onMatch>ACCEPT</onMatch>
             <onMismatch>DENY</onMismatch>
         </filter>
-        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
-            <fileNamePattern>${LOG_PATH}/${LOG_FILE}-error-%d{yyyy-MM-dd}.%i.log</fileNamePattern>
-            <maxFileSize>10MB</maxFileSize>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${ERROR_LOG_PATH}/%d{yyyyMMdd}.log</fileNamePattern>
             <maxHistory>90</maxHistory>
             <totalSizeCap>1GB</totalSizeCap>
         </rollingPolicy>
@@ -62,14 +67,12 @@
 
     <!-- ========== 审计日志文件 ========== -->
     <appender name="AUDIT_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${LOG_PATH}/audit.log</file>
         <encoder>
             <pattern>%d{yyyy-MM-dd HH:mm:ss} | %msg%n</pattern>
             <charset>UTF-8</charset>
         </encoder>
-        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
-            <fileNamePattern>${LOG_PATH}/audit-%d{yyyy-MM-dd}.%i.log</fileNamePattern>
-            <maxFileSize>10MB</maxFileSize>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${AUDIT_LOG_PATH}/%d{yyyyMMdd}.log</fileNamePattern>
             <maxHistory>90</maxHistory>
             <totalSizeCap>500MB</totalSizeCap>
         </rollingPolicy>
@@ -90,14 +93,12 @@
 
     <!-- ========== SQL 日志（单独文件） ========== -->
     <appender name="SQL_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${LOG_PATH}/sql.log</file>
         <encoder>
             <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} | %msg%n</pattern>
             <charset>UTF-8</charset>
         </encoder>
-        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
-            <fileNamePattern>${LOG_PATH}/sql-%d{yyyy-MM-dd}.%i.log</fileNamePattern>
-            <maxFileSize>10MB</maxFileSize>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${SQL_LOG_PATH}/%d{yyyyMMdd}.log</fileNamePattern>
             <maxHistory>7</maxHistory>
             <totalSizeCap>100MB</totalSizeCap>
         </rollingPolicy>
@@ -107,6 +108,19 @@
         <discardingThreshold>0</discardingThreshold>
         <queueSize>256</queueSize>
         <appender-ref ref="SQL_FILE"/>
+    </appender>
+
+    <!-- ========== 访问日志文件 ========== -->
+    <appender name="ACCESS_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <encoder>
+            <pattern>${ACCESS_LOG_PATTERN}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${ACCESS_LOG_PATH}/%d{yyyyMMdd}.log</fileNamePattern>
+            <maxHistory>30</maxHistory>
+            <totalSizeCap>500MB</totalSizeCap>
+        </rollingPolicy>
     </appender>
 
     <!-- ========== 自定义日志级别 ========== -->

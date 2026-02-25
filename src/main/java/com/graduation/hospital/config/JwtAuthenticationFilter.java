@@ -19,6 +19,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 
 /**
  * JWT 认证过滤器
@@ -38,6 +39,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
+
+        // 记录请求开始时间
+        long startTime = System.currentTimeMillis();
+        String requestId = UUID.randomUUID().toString().substring(0, 8);
+
+        // 记录请求日志（无论是否有 Token）
+        log.info("→ {} {} | IP: {} | UA: {}",
+                request.getMethod(),
+                request.getRequestURI(),
+                getClientIp(request),
+                getUserAgent(request));
 
         String authHeader = request.getHeader(AUTH_HEADER);
 
@@ -80,7 +92,49 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
         }
 
-        filterChain.doFilter(request, response);
+        try {
+            filterChain.doFilter(request, response);
+        } finally {
+            // 记录响应日志
+            long duration = System.currentTimeMillis() - startTime;
+            log.info("← {} {} | Status: {} | Duration: {}ms",
+                    request.getMethod(),
+                    request.getRequestURI(),
+                    response.getStatus(),
+                    duration);
+        }
+    }
+
+    /**
+     * 获取客户端真实 IP
+     */
+    private String getClientIp(HttpServletRequest request) {
+        String[] headers = {
+            "X-Forwarded-For",
+            "X-Real-IP",
+            "Proxy-Client-IP",
+            "WL-Proxy-Client-IP"
+        };
+
+        for (String header : headers) {
+            String ip = request.getHeader(header);
+            if (ip != null && !ip.isEmpty() && !"unknown".equalsIgnoreCase(ip)) {
+                return ip.contains(",") ? ip.split(",")[0].trim() : ip;
+            }
+        }
+
+        return request.getRemoteAddr();
+    }
+
+    /**
+     * 获取用户代理
+     */
+    private String getUserAgent(HttpServletRequest request) {
+        String ua = request.getHeader("User-Agent");
+        if (ua == null || ua.isEmpty()) {
+            return "-";
+        }
+        return ua.length() > 100 ? ua.substring(0, 100) + "..." : ua;
     }
 
     @Override
