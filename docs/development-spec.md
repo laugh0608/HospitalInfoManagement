@@ -181,6 +181,13 @@ log.error("系统异常: ", e);
   - 纯粹的模板代码
   - 单行显而易见的功能
 
+#### 配置文件注释规范
+
+- `.properties` 和 `.yml` 配置文件必须使用 **英文注释**
+- **禁止**在配置文件中使用中文注释（包括行内注释），避免编码问题导致配置解析错误
+- 示例（正确）：`jwt.expiration=86400000  # valid for 24 hours`
+- 示例（错误）：`jwt.expiration=86400000  # 24小时`
+
 ```java
 // 病人编号格式：P + 年月日 + 5位序号
 private String generatePatientNo() {
