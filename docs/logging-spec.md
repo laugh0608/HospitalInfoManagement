@@ -277,3 +277,123 @@ grep "admin" logs/audit.log
 # 查看特定表的 SQL
 grep "patient" logs/sql.log
 ```
+
+---
+
+## 11. 数据库日志（可选）
+
+### 11.1 概述
+
+除了文件日志，系统还支持将日志写入独立的 SQLite 数据库，具有以下优势：
+- 更快的查询速度
+- 支持复杂条件查询
+- 节省磁盘空间
+- 易于数据分析和导出
+
+### 11.2 目录结构
+
+```
+db/
+├── hospital.db          # 业务数据库
+└── hospital.log.db     # 日志数据库
+
+logs/                   # 保留文件日志（可选关闭）
+└── ...
+```
+
+### 11.3 配置选项
+
+在 `application.properties` 中配置：
+
+```properties
+# 文件日志开关（默认开启）
+logging.file.enabled=true
+
+# 数据库日志配置
+logging.db.enabled=true                                    # 启用数据库日志
+logging.db.split-mode=DAY                                  # 分表模式
+logging.db.retention-days=90                               # 数据保留天数
+logging.db.log-sql=true                                    # 是否记录 SQL 日志
+logging.db.log-audit=true                                  # 是否记录审计日志
+logging.db.log-access=true                                 # 是否记录访问日志
+```
+
+### 11.4 分表模式
+
+| 模式 | 说明 | 表名示例 | 适用场景 |
+|------|------|----------|----------|
+| YEAR | 按年分表 | sql_2026 | 低流量日志 |
+| MONTH | 按月分表 | sql_202602 | 中等流量 |
+| WEEK | 按周分表 | sql_2026W01 | 高流量 |
+| DAY | 按天分表 | sql_20260225 | 高流量/精细分析 |
+
+### 11.5 数据库表结构
+
+**SQL 日志表（sql_YYYYMMDD）**
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| id | INTEGER | 主键 |
+| log_time | DATETIME | 日志时间 |
+| thread | TEXT | 线程名 |
+| sql_type | TEXT | SQL 类型 |
+| sql_text | TEXT | SQL 语句 |
+| duration | INTEGER | 执行耗时 |
+| success | INTEGER | 是否成功 |
+| error_message | TEXT | 错误信息 |
+| username | TEXT | 用户名 |
+| request_id | TEXT | 请求 ID |
+
+**审计日志表（audit_YYYYMMDD）**
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| id | INTEGER | 主键 |
+| log_time | DATETIME | 日志时间 |
+| username | TEXT | 用户名 |
+| user_id | INTEGER | 用户 ID |
+| action_type | TEXT | 操作类型 |
+| module | TEXT | 模块 |
+| description | TEXT | 描述 |
+| target | TEXT | 目标对象 |
+| ip | TEXT | IP 地址 |
+| success | INTEGER | 是否成功 |
+
+**访问日志表（access_YYYYMMDD）**
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| id | INTEGER | 主键 |
+| request_time | DATETIME | 请求时间 |
+| request_id | TEXT | 请求 ID |
+| method | TEXT | 请求方法 |
+| url | TEXT | 请求 URL |
+| ip | TEXT | 客户端 IP |
+| user_agent | TEXT | 用户代理 |
+| status | INTEGER | 响应状态码 |
+| duration | INTEGER | 耗时（毫秒） |
+| username | TEXT | 用户名 |
+
+### 11.6 启用/禁用日志类型
+
+根据需求可以单独开启或关闭某类日志：
+
+```properties
+# 只开启审计日志（节省空间）
+logging.db.log-sql=false
+logging.db.log-audit=true
+logging.db.log-access=false
+```
+
+### 11.7 数据库日志查询
+
+```bash
+# 使用 sqlite3 查询日志数据库
+sqlite3 db/hospital.log.db
+
+# 查询今天的审计日志
+SELECT * FROM audit_20260225 WHERE username = 'admin';
+
+# 查询今天的访问日志
+SELECT * FROM access_20260225 WHERE status = 404;
+
+# 查询慢 SQL（耗时 > 1秒）
+SELECT * FROM sql_20260225 WHERE duration > 1000;
+```
