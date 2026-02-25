@@ -1,10 +1,32 @@
-# AGENTS.md - 编码规范指南
+# AGENTS.md
 
-本文档为在 HospitalInfoManagement 项目中工作的 AI 代理提供编码指南。
+This file provides guidance to AI agents when working with code in this repository.
+
+## 项目概述
+
+HospitalInfoManagement 是一个社区医院病人信息管理系统，基于以下技术栈构建：
+- **后端**：Spring Boot 4.0.1、MySQL、JPA + Spring Data、Java 25、Gradle (Groovy DSL)
+- **前端**：Vue 3、TypeScript、Vite、Element Plus（规划中）
+
+## 代码编写流程
+
+**在编写任何代码之前，必须遵循以下流程：**
+
+1. **描述方案**：先向用户清晰描述你的实现方案，包括：
+   - 目标功能或修复的问题
+   - 涉及的代码文件和模块
+   - 实现的思路和关键步骤
+   - 预期的代码变更
+
+2. **等待批准**：等待用户确认方案后再开始编写代码
+
+3. **澄清问题**：如果需求不明确，务必在编写代码之前提出并澄清问题
+
+---
 
 ## 构建命令
 
-### Backend (Gradle/Java)
+### 后端（Gradle/Java）
 
 ```bash
 cd backend
@@ -18,7 +40,7 @@ cd backend
 
 # 运行测试
 ./gradlew test                                               # 所有测试
-./gradlew test --tests "com.hospital.ClassName"              # 单个测试类
+./gradlew test --tests "com.graduation.hospital.ClassName"  # 单个测试类
 ./gradlew test --tests "*.methodName"                        # 单个测试方法
 ./gradlew test --info                                        # 详细输出
 
@@ -27,10 +49,13 @@ cd backend
 ./gradlew asciidoctor pdf                                     # PDF
 ```
 
-### Frontend (Vite/Vue)
+### 前端（Vite/Vue）
 
 ```bash
 cd frontend
+
+# 安装依赖
+npm install                           # 安装依赖
 
 # 开发
 npm run dev                           # 热重载开发
@@ -47,17 +72,10 @@ npx vue-tsc                           # 严格类型检查
 
 ---
 
-## 代码风格指南
+## 架构设计
 
-### Java (后端)
+### 后端分层结构
 
-**命名约定：**
-- 类名：`PascalCase`（例如：`PatientService`、`HospitalController`）
-- 方法/变量：`camelCase`（例如：`getPatientById`、`patientList`）
-- 常量：`SCREAMING_SNAKE_CASE`（例如：`MAX_RETRY_COUNT`）
-- 包名：全小写（例如：`com.hospital.service`）
-
-**文件结构：**
 ```
 src/main/java/com/graduation/hospital/
 ├── entity/           # JPA 实体类
@@ -67,12 +85,40 @@ src/main/java/com/graduation/hospital/
 ├── dto/              # 数据传输对象
 ├── vo/               # 视图对象
 ├── common/           # 工具类、配置
+│   ├── exception/    # 自定义异常
+│   └── Result.java   # 统一 API 响应封装
 └── HospitalApplication.java
 ```
 
+### 前端结构（Vue 3）
+
+```
+src/
+├── api/              # API 服务层
+├── components/       # 可复用组件
+├── views/            # 页面组件
+├── stores/           # Pinia 状态管理
+├── router/          # Vue Router 配置
+├── utils/           # 工具函数
+├── types/           # TypeScript 类型定义
+└── main.ts
+```
+
+---
+
+## 代码风格指南
+
+### Java (后端)
+
+**命名约定：**
+- 类名：`PascalCase`（例如：`PatientService`、`HospitalController`）
+- 方法/变量：`camelCase`（例如：`getPatientById`、`patientList`）
+- 常量：`SCREAMING_SNAKE_CASE`（例如：`MAX_RETRY_COUNT`）
+- 包名：全小写（例如：`com.graduation.hospital.service`）
+
 **导入规范：**
 - 避免使用通配符导入，使用显式导入
-- 顺序：static → java.* → javax.* → org.* → com.hospital.*
+- 顺序：static → java.* → javax.* → org.* → com.graduation.hospital.*
 
 **类型使用：**
 - 不需要空安全时使用基本类型（`int` 而非 `Integer`）
@@ -102,23 +148,10 @@ src/main/java/com/graduation/hospital/
 - 文件：工具类使用 `kebab-case`（例如：`api-client.ts`）
 - Props/Emits：`camelCase`
 
-**文件结构：**
-```
-src/
-├── api/              # API 服务
-├── components/       # 可复用组件
-├── views/            # 页面组件
-├── stores/           # Pinia 状态管理
-├── router/           # Vue Router 配置
-├── utils/            # 工具函数
-├── types/            # TypeScript 接口
-└── main.ts
-```
-
 **TypeScript：**
 - 启用严格模式（noImplicitAny, strictNullChecks）
 - 为 API 响应定义接口
-- 使用proper类型，避免使用 `any`
+- 使用 proper 类型，避免使用 `any`
 - Props 使用 `readonly`
 
 **Vue 3 Composition API：**
@@ -141,7 +174,8 @@ src/
 
 ## 项目约定
 
-**数据库（MySQL + Spring Data JPA）：**
+### 数据库（MySQL + Spring Data JPA）
+
 - 表名：`snake_case`（例如：`patient_info`）
 - 实体字段：`camelCase`（JPA 自动映射）
 - 非持久化字段使用 `@Transient`
@@ -149,7 +183,8 @@ src/
 - 关联关系使用 `@OneToMany`、`@ManyToOne`、`@ManyToMany` 等注解
 - 使用 `@Column` 注解显式指定列名映射（可选但推荐）
 
-**API 响应格式：**
+### API 响应格式
+
 ```json
 {
   "code": 200,
@@ -158,7 +193,8 @@ src/
 }
 ```
 
-**Git 提交规范：**
+### Git 提交规范
+
 - 格式：`type(scope): description`
 - 类型：feat, fix, docs, style, refactor, test, chore, perf, ci
 - 示例：`feat(patient): 添加患者搜索功能`
@@ -166,6 +202,8 @@ src/
   - user: laugh0608
   - email: laugh0608@foxmail.com
 - 禁止在提交信息中包含任何 AI 协作者相关信息
+- 使用中文描述，简洁明了
+- subject 不超过 50 字
 
 ---
 
@@ -175,3 +213,11 @@ src/
 - 将 `application-example.properties` 复制为 `application.properties`
 - 在 `application.properties` 中配置 MySQL 连接信息
 - 运行 `db/` 目录下的数据库初始化脚本
+
+---
+
+## 参考资料
+
+- 快速入门指南：[CLAUDE.md](CLAUDE.md)
+- 项目介绍：[README.md](README.md)
+- Spring Boot 参考文档：[backend/HELP.md](backend/HELP.md)
