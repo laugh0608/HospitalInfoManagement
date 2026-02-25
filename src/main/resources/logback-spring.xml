@@ -9,17 +9,16 @@
     <conversionRule conversionWord="wex" class="org.springframework.boot.logging.logback.WhitespaceThrowableProxyConverter"/>
     <conversionRule conversionWord="wEx" class="org.springframework.boot.logging.logback.ExtendedWhitespaceThrowableProxyConverter"/>
 
+    <!-- 自定义转换器：从 MDC 获取 requestId -->
+    <conversionRule conversionWord="requestId" converterClass="com.graduation.hospital.common.log.MdcRequestIdConverter"/>
+
     <!-- 彩色日志格式（开发环境控制台） -->
     <property name="CONSOLE_LOG_PATTERN"
               value="${CONSOLE_LOG_PATTERN:-%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(${LOG_LEVEL_PATTERN:-%5p}) %clr(${PID:- }){magenta} %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}}"/>
 
     <!-- 文件日志格式（包含请求 ID） -->
     <property name="FILE_LOG_PATTERN"
-              value="${FILE_LOG_PATTERN:-%d{yyyy-MM-dd HH:mm:ss.SSS} ${LOG_LEVEL_PATTERN:-%5p} [%-30.30requestId] ${PID:- } --- [%t] %-40.40logger{39} : %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}}"/>
-
-    <!-- JSON 日志格式（可选，用于日志收集） -->
-    <property name="JSON_LOG_PATTERN"
-              value='{"timestamp":"%d{yyyy-MM-dd HH:mm:ss.SSS}","level":"%level","requestId":"%requestId","thread":"%thread","logger":"%logger","message":"%msg"%exception}'/>
+              value="${FILE_LOG_PATTERN:-%d{yyyy-MM-dd HH:mm:ss.SSS} ${LOG_LEVEL_PATTERN:-%5p} [%requestId] ${PID:- } --- [%t] %-40.40logger{39} : %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}}"/>
 
     <!-- ========== 控制台输出 ========== -->
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
