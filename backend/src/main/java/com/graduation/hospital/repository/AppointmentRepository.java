@@ -16,7 +16,10 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
 
     boolean existsByAppointmentNo(String appointmentNo);
 
+    // 使用方法命名查询
     List<Appointment> findByPatientId(Long patientId);
+
+    List<Appointment> findByPatientIdOrderByAppointmentTimeDesc(Long patientId);
 
     List<Appointment> findByDoctorId(Long doctorId);
 
@@ -24,12 +27,11 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
 
     List<Appointment> findByStatus(String status);
 
-    @Query("SELECT a FROM Appointment a WHERE a.patient.id = :patientId ORDER BY a.appointmentTime DESC")
-    List<Appointment> findByPatientIdOrderByAppointmentTimeDesc(Long patientId);
-
+    // 复杂查询：医生 + 时间范围
     @Query("SELECT a FROM Appointment a WHERE a.doctor.id = :doctorId AND a.appointmentTime BETWEEN :startTime AND :endTime")
     List<Appointment> findByDoctorIdAndAppointmentTimeBetween(Long doctorId, LocalDateTime startTime, LocalDateTime endTime);
 
+    // 复杂查询：状态 + 时间范围
     @Query("SELECT a FROM Appointment a WHERE a.status = :status AND a.appointmentTime BETWEEN :startTime AND :endTime")
     List<Appointment> findByStatusAndAppointmentTimeBetween(String status, LocalDateTime startTime, LocalDateTime endTime);
 }

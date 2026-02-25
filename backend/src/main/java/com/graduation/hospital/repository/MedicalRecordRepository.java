@@ -16,16 +16,16 @@ public interface MedicalRecordRepository extends JpaRepository<MedicalRecord, Lo
 
     boolean existsByRecordNo(String recordNo);
 
+    // 使用方法命名查询，Spring Data JPA 自动解析
     List<MedicalRecord> findByPatientId(Long patientId);
+
+    List<MedicalRecord> findByPatientIdOrderByVisitTimeDesc(Long patientId);
 
     List<MedicalRecord> findByDoctorId(Long doctorId);
 
-    @Query("SELECT m FROM MedicalRecord m WHERE m.patient.id = :patientId ORDER BY m.visitTime DESC")
-    List<MedicalRecord> findByPatientIdOrderByVisitTimeDesc(Long patientId);
-
-    @Query("SELECT m FROM MedicalRecord m WHERE m.visitTime BETWEEN :startTime AND :endTime")
     List<MedicalRecord> findByVisitTimeBetween(LocalDateTime startTime, LocalDateTime endTime);
 
+    // 复杂查询：医生 + 时间范围，需要手动 JPQL
     @Query("SELECT m FROM MedicalRecord m WHERE m.doctor.id = :doctorId AND m.visitTime BETWEEN :startTime AND :endTime")
     List<MedicalRecord> findByDoctorIdAndVisitTimeBetween(Long doctorId, LocalDateTime startTime, LocalDateTime endTime);
 }

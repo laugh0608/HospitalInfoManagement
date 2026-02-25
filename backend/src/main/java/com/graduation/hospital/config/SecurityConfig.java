@@ -46,7 +46,9 @@ public class SecurityConfig {
         // 允许的源（开发环境）
         configuration.setAllowedOrigins(Arrays.asList(
             "http://localhost:3000",      // 前端开发服务器
-            "http://127.0.0.1:3000"       // 本地环回地址
+            "http://127.0.0.1:3000",     // 本地环回地址
+            "http://localhost:8080",      // 后端开发服务器
+            "http://127.0.0.1:8080"
         ));
 
         // 允许的 HTTP 方法
