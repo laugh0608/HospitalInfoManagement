@@ -137,6 +137,12 @@ src/
 - 实体类必须使用 JPA 注解（`@Entity`、`@Table`、`@Column`）
 - 主键使用 `@Id` 和 `@GeneratedValue(strategy = GenerationType.IDENTITY)`
 
+**配置文件注释规范：**
+- `.properties` 和 `.yml` 配置文件必须使用英文注释
+- 禁止在配置文件中使用中文注释（包括行内注释），避免编码问题导致配置解析错误
+- 示例：`jwt.expiration=86400000  # valid for 24 hours`（正确）
+- 示例：`jwt.expiration=86400000  # 24小时`（错误 - 会导致解析失败）
+
 ---
 
 ### Vue/TypeScript (前端)
