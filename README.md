@@ -55,8 +55,6 @@ HospitalInfoManagement/
 ### 后端启动
 
 ```bash
-cd backend
-
 # 1. 首次使用需要给 gradlew 添加执行权限（Linux/Mac）
 chmod +x gradlew
 

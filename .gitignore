@@ -1,115 +1,46 @@
-# ===========================
-# 操作系统文件
-# ===========================
-.DS_Store
-Thumbs.db
-*.swp
-*.swo
-*~
-.#*
+.gradle
+build/
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/main/**/build/
+!**/src/test/**/build/
 
-# ===========================
-# IDE
-# ===========================
-.idea/
-.vscode/
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+bin/
+!**/src/main/**/bin/
+!**/src/test/**/bin/
+
+### IntelliJ IDEA ###
+.idea
+*.iws
 *.iml
 *.ipr
-*.iws
-.project
-.classpath
-.settings/
-*.sublime-*
+out/
+!**/src/main/**/out/
+!**/src/test/**/out/
 
-# ===========================
-# Gradle (Groovy)
-# ===========================
-backend/.gradle/
-backend/build/
-backend/out/
-backend/.gradle/
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
 
-# Gradle wrapper
-backend/gradle/wrapper/gradle-wrapper.jar
-backend/gradlew
-backend/gradlew.bat
+### VS Code ###
+.vscode/
 
-# 打包文件
-*.jar
-*.war
-*.nar
-*.ear
-*.zip
-*.tar.gz
-*.rar
+### SQLite 数据库文件 ###
+db/*.db
+db/*.sqlite
+db/*.sqlite3
+*.db-journal
 
-# Gradle cache
-backend/.gradle/
-build/
-
-# ===========================
-# 前端 - Node
-# ===========================
-frontend/node_modules/
-frontend/pnpm-lock.yaml
-frontend/yarn.lock
-frontend/package-lock.json
-
-# 编译输出
-frontend/dist/
-frontend/build/
-
-# 环境文件
-frontend/.env
-frontend/.env.local
-frontend/.env.*.local
-
-# 日志
-frontend/npm-debug.log*
-frontend/yarn-debug.log*
-frontend/pnpm-debug.log*
-
-# ===========================
-# 日志文件
-# ===========================
-*.log
+### 日志文件 ###
 logs/
-**/logs/
-
-# ===========================
-# 配置文件
-# ===========================
-# 注释：开发阶段使用 SQLite，配置文件可以提交
-# application*.yml
-# application*.yaml
-# application*.properties
-# !application-example.yml
-
-# ===========================
-# 测试
-# ===========================
-backend/target/test-results/
-backend/target/jacoco/
-coverage/
-
-# ===========================
-# 临时文件
-# ===========================
-*.tmp
-*.temp
-temp/
-
-# ===========================
-# 数据库
-# ===========================
-*.db
-*.sqlite
-*.mdb
-
-# ===========================
-# 其他
-# =========================**
-*.cache
-*.pid
-*.seed
-*.pid.lock
+*.log

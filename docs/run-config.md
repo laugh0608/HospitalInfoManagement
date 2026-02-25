@@ -14,7 +14,6 @@ WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning
 
 #### 方式 1：使用 Gradle 命令启动（推荐）
 ```bash
-cd backend
 ./gradlew bootRun
 ```
 已在 `build.gradle` 中配置 JVM 参数，Gradle 启动时自动应用。
@@ -38,7 +37,6 @@ cd backend
 
 #### 方式 3：直接运行 JAR
 ```bash
-cd backend
 ./gradlew build
 java --enable-native-access=ALL-UNNAMED -jar build/libs/hospital-0.0.1-SNAPSHOT.jar
 ```

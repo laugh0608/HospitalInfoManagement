@@ -29,8 +29,6 @@ HospitalInfoManagement 是一个社区医院病人信息管理系统，基于以
 ### 后端（Gradle/Java）
 
 ```bash
-cd backend
-
 # 运行应用
 ./gradlew bootRun
 

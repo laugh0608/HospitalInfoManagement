@@ -29,8 +29,6 @@ HospitalInfoManagement 是一个社区医院病人信息管理系统，基于以
 ### 后端（Gradle/Java）
 
 ```bash
-cd backend
-
 # 运行应用
 ./gradlew bootRun
 
@@ -256,4 +254,4 @@ private String generatePatientNo() {
 
 - 完整编码规范：[AGENTS.md](AGENTS.md)
 - 项目介绍：[README.md](README.md)
-- Spring Boot 参考文档：[backend/HELP.md](backend/HELP.md)
+- Spring Boot 参考文档：[HELP.md](HELP.md)
