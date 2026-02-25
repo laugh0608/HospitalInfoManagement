@@ -1,6 +1,6 @@
 # 日志规范文档
 
-> 文档版本：v1.0
+> 文档版本：v1.1
 > 最后更新：2026-02-25
 
 ---
@@ -311,11 +311,14 @@ logging.file.enabled=true
 
 # 数据库日志配置
 logging.db.enabled=true                                    # 启用数据库日志
-logging.db.split-mode=DAY                                  # 分表模式
-logging.db.retention-days=90                               # 数据保留天数
+logging.db.split-mode=DAY                                   # 分表模式：YEAR/MONTH/WEEK/DAY
+logging.db.retention-days=90                                # 数据保留天数
 logging.db.log-sql=true                                    # 是否记录 SQL 日志
 logging.db.log-audit=true                                  # 是否记录审计日志
-logging.db.log-access=true                                 # 是否记录访问日志
+logging.db.log-access=true                                  # 是否记录访问日志
+logging.db.database-path=db/hospital.log.db                # 日志数据库路径
+logging.db.batch-size=100                                   # 批量插入大小
+logging.db.flush-interval=5000                              # 刷新间隔（毫秒）
 ```
 
 ### 11.4 分表模式
@@ -396,4 +399,23 @@ SELECT * FROM access_20260225 WHERE status = 404;
 
 # 查询慢 SQL（耗时 > 1秒）
 SELECT * FROM sql_20260225 WHERE duration > 1000;
+```
+
+### 11.8 实现状态
+
+| 功能 | 状态 | 说明 |
+|------|------|------|
+| 访问日志写入 SQLite | ✅ 已实现 | 通过 DbLoggingFilter 拦截 HTTP 请求 |
+| 审计日志写入 SQLite | ⚠️ 部分实现 | 仅写入文件日志，未写入数据库 |
+| SQL 日志写入 SQLite | ⚠️ 部分实现 | 拦截器已配置，但未写入数据库 |
+| 分表存储 | 🐛 BUG | 日志只写入主表，分表未实现 |
+| 批量写入 | ✅ 已实现 | batch-size=100，flush-interval=5000ms |
+
+### 11.9 已知问题
+
+#### 🐛 分表功能 BUG
+- **问题**：日志只写入主表（如 `access_log`），分表（如 `access_log_20260225`）为空
+- **原因**：`DbLoggingFilter` 直接写入主表，未调用分表逻辑
+- **修复**：修改日志写入逻辑，按分表名插入数据
+- **相关文件**：`common/log/db/DbLoggingFilter.java`、`common/log/db/DbLoggingService.java`
 ```
