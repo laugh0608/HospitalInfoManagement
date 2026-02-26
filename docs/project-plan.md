@@ -1,7 +1,7 @@
 # HospitalInfoManagement 项目规划
 
 > 文档状态：已完善
-> 当前版本：v26.2.3
+> 当前版本：v26.2.4
 > 最后更新：2026-02-26
 
 ## 项目概述
@@ -36,6 +36,7 @@
 
 #### 1. 用户管理模块
 - [x] 用户注册与登录（JWT 认证）
+- [x] 数据初始化（内置角色 + 管理员账户）
 - [ ] 角色权限管理
 - [ ] 个人信息管理
 
@@ -76,7 +77,9 @@
 | 后端基础架构 | 完成 | Entity、Repository、Service、Controller |
 | 安全认证 | 完成 | JWT 无状态认证 |
 | 数据库日志 | 完成 | SQLite 分表存储 |
-| 前端基础设施 | 完成 | 登录页、主布局 |
+| 前端基础设施 | 完成 | 登录页、门户首页、后台主布局 |
+| UI 设计规范 | 完成 | 统一暖绿配色方案 |
+| 数据初始化 | 完成 | 启动时自动创建角色和管理员 |
 | 病人信息管理 | 待开发 | - |
 | 病历管理 | 待开发 | - |
 | 预约管理 | 待开发 | - |
@@ -170,7 +173,8 @@ frontend/src/
 ├── layouts/              # 布局组件
 │   └── MainLayout.vue    # 侧边栏 + 顶栏 + 内容区
 ├── views/                # 页面组件
-│   ├── login/            # 登录页
+│   ├── home/             # 门户首页（公共）
+│   ├── login/            # 登录页（公共）
 │   ├── dashboard/        # 仪表盘
 │   ├── patient/          # 患者管理
 │   ├── doctor/           # 医生管理
@@ -205,15 +209,16 @@ frontend/src/
 #### 前端路由结构
 
 ```
-/login                      # 登录页（无需认证）
-/                           # 主布局（需认证，MainLayout）
-├── /dashboard              # 仪表盘（默认首页）
-├── /patient                # 患者管理
-├── /doctor                 # 医生管理
-├── /department             # 科室管理
-├── /appointment            # 预约挂号
-├── /medical-record         # 病历管理
-└── /medicine               # 药品管理
+/                           # 门户首页（公共，无需认证）
+/login                      # 登录页（公共，无需认证）
+/console                    # 管理后台（需认证，MainLayout）
+├── /console/dashboard      # 仪表盘（默认首页）
+├── /console/patient        # 患者管理
+├── /console/doctor         # 医生管理
+├── /console/department     # 科室管理
+├── /console/appointment    # 预约挂号
+├── /console/medical-record # 病历管理
+└── /console/medicine       # 药品管理
 ```
 
 > **说明**：当前路由为一级结构，各模块内部子路由（列表/详情/新增等）将在后续业务开发时按需添加。
@@ -523,3 +528,4 @@ frontend/src/
 | 2026-02-25 | v26.2.1 | 完善版本号规范；完成后端核心架构（Entity、Repository、Service、Controller） | - |
 | 2026-02-25 | v26.2.2 | 添加数据库日志服务，支持分表存储（DbLoggingService、DbLoggingFilter、SqlLoggingInterceptor） | - |
 | 2026-02-26 | v26.2.3 | 搭建前端基础设施：Element Plus/Vue Router/Pinia/Axios，实现登录页和后台主布局，修复后端登录白名单 | - |
+| 2026-02-26 | v26.2.4 | 添加数据初始化器、门户首页、统一 UI 配色、路由重构（/console 前缀）、修复 /me 接口 | - |

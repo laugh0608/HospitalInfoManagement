@@ -1,6 +1,6 @@
 # 前端架构设计
 
-> 文档版本：v26.2.3
+> 文档版本：v26.2.4
 > 最后更新：2026-02-26
 
 ---
@@ -31,7 +31,8 @@ frontend/src/
 ├── layouts/              # 布局组件
 │   └── MainLayout.vue    # 侧边栏 + 顶栏 + 内容区
 ├── views/                # 页面组件
-│   ├── login/            # 登录页
+│   ├── home/             # 门户首页（公共）
+│   ├── login/            # 登录页（公共）
 │   ├── dashboard/        # 仪表盘
 │   ├── patient/          # 患者管理
 │   ├── doctor/           # 医生管理
@@ -59,18 +60,23 @@ frontend/src/
 ## 路由结构
 
 ```
-/login                      # 登录页（无需认证）
-/                           # 主布局（需认证，MainLayout）
-├── /dashboard              # 仪表盘（默认首页）
-├── /patient                # 患者管理
-├── /doctor                 # 医生管理
-├── /department             # 科室管理
-├── /appointment            # 预约挂号
-├── /medical-record         # 病历管理
-└── /medicine               # 药品管理
+/                           # 门户首页（公共，无需认证）
+/login                      # 登录页（公共，无需认证）
+/console                    # 管理后台（需认证，MainLayout）
+├── /console/dashboard      # 仪表盘（默认首页）
+├── /console/patient        # 患者管理
+├── /console/doctor         # 医生管理
+├── /console/department     # 科室管理
+├── /console/appointment    # 预约挂号
+├── /console/medical-record # 病历管理
+└── /console/medicine       # 药品管理
 ```
 
-> **说明**：当前路由为一级结构，各模块内部子路由（列表/详情/新增等）将在后续业务开发时按需添加。
+> **说明**：
+> - `/` 和 `/login` 为公共路由，无需登录即可访问
+> - 已登录用户访问 `/login` 会重定向到 `/console`
+> - 未登录用户访问 `/console/*` 路由会重定向到 `/login`
+> - 门户首页根据用户角色动态显示「管理后台」入口
 
 ---
 

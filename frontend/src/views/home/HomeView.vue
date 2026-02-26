@@ -1,5 +1,7 @@
 <script setup lang="ts">
+import { computed } from 'vue';
 import { useRouter } from 'vue-router';
+import { useUserStore } from '@/stores/user';
 import {
   OfficeBuilding,
   Calendar,
@@ -11,6 +13,22 @@ import {
 } from '@element-plus/icons-vue';
 
 const router = useRouter();
+const userStore = useUserStore();
+
+// 是否已登录
+const isLoggedIn = computed(() => !!userStore.token);
+
+// 是否有管理后台权限（ADMIN、DOCTOR、NURSE 可进入后台）
+const hasConsoleAccess = computed(() => {
+  if (!userStore.user?.roles) return false;
+  const consoleCodes = ['ADMIN', 'DOCTOR', 'NURSE'];
+  return userStore.user.roles.some((r) => consoleCodes.includes(r.code));
+});
+
+// 显示的用户名
+const displayName = computed(() => {
+  return userStore.user?.profile?.realName || userStore.user?.username || '用户';
+});
 
 const services = [
   {
@@ -38,6 +56,14 @@ const services = [
 function goLogin() {
   router.push('/login');
 }
+
+function goConsole() {
+  router.push('/console');
+}
+
+function handleLogout() {
+  userStore.logout();
+}
 </script>
 
 <template>
@@ -51,7 +77,34 @@ function goLogin() {
           </div>
           <span class="logo-title">社区医院信息管理系统</span>
         </div>
-        <el-button type="primary" @click="goLogin">管理后台登录</el-button>
+        <div class="nav-actions">
+          <!-- 未登录：显示登录/注册 -->
+          <template v-if="!isLoggedIn">
+            <el-button @click="goLogin">登录</el-button>
+            <el-button type="primary" @click="goLogin">注册</el-button>
+          </template>
+          <!-- 已登录 -->
+          <template v-else>
+            <el-button
+              v-if="hasConsoleAccess"
+              type="primary"
+              @click="goConsole"
+            >
+              管理后台
+            </el-button>
+            <el-dropdown>
+              <span class="nav-user">
+                {{ displayName }}
+                <el-icon class="el-icon--right"><arrow-down /></el-icon>
+              </span>
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item @click="handleLogout">退出登录</el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
+          </template>
+        </div>
       </div>
     </header>
 
@@ -193,6 +246,26 @@ function goLogin() {
   font-size: 18px;
   font-weight: 600;
   color: #2d3436;
+}
+
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.nav-user {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #2d3436;
+  font-weight: 500;
+}
+
+.nav-user:hover {
+  color: #52b788;
 }
 
 /* Hero 区域 */

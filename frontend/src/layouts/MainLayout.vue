@@ -49,7 +49,7 @@ const displayName = computed(() => {
 
 function handleLogout() {
   userStore.logout();
-  router.push('/login');
+  router.push('/');
 }
 </script>
 
@@ -65,7 +65,7 @@ function handleLogout() {
         :default-active="activeMenu"
         :collapse="isCollapsed"
         router
-        background-color="#001529"
+        background-color="#1b4332"
         text-color="rgba(255, 255, 255, 0.65)"
         active-text-color="#fff"
         class="aside-menu"
@@ -125,7 +125,7 @@ function handleLogout() {
 }
 
 .layout-aside {
-  background-color: #001529;
+  background-color: #1b4332;
   transition: width 0.3s;
   overflow: hidden;
 }
@@ -159,6 +159,15 @@ function handleLogout() {
   width: 220px;
 }
 
+/* 菜单激活项高亮 */
+.aside-menu :deep(.el-menu-item.is-active) {
+  background-color: #52b788 !important;
+}
+
+.aside-menu :deep(.el-menu-item:hover) {
+  background-color: rgba(82, 183, 136, 0.3) !important;
+}
+
 .layout-header {
   background: #fff;
   display: flex;
@@ -172,11 +181,11 @@ function handleLogout() {
 .collapse-btn {
   font-size: 20px;
   cursor: pointer;
-  color: #333;
+  color: #2d3436;
 }
 
 .collapse-btn:hover {
-  color: #409eff;
+  color: #52b788;
 }
 
 .header-right {
@@ -190,11 +199,11 @@ function handleLogout() {
   gap: 4px;
   cursor: pointer;
   font-size: 14px;
-  color: #333;
+  color: #2d3436;
 }
 
 .user-info:hover {
-  color: #409eff;
+  color: #52b788;
 }
 
 .layout-main {
