@@ -34,7 +34,7 @@ const iconMap: Record<string, typeof Odometer> = {
 
 // 从路由配置中获取菜单项
 const menuItems = computed(() => {
-  const mainRoute = router.options.routes.find((r) => r.path === '/');
+  const mainRoute = router.options.routes.find((r) => r.path === '/console');
   if (!mainRoute || !mainRoute.children) return [];
   return mainRoute.children.filter((child) => !child.meta?.hidden);
 });
@@ -73,7 +73,7 @@ function handleLogout() {
         <el-menu-item
           v-for="item in menuItems"
           :key="item.path"
-          :index="'/' + item.path"
+          :index="'/console/' + item.path"
         >
           <el-icon>
             <component :is="iconMap[item.meta?.icon as string]" />

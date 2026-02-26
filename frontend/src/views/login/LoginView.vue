@@ -33,7 +33,7 @@ async function handleLogin() {
   loading.value = true;
   try {
     await userStore.login(loginForm);
-    const redirect = (route.query.redirect as string) || '/';
+    const redirect = (route.query.redirect as string) || '/console';
     router.push(redirect);
   } finally {
     loading.value = false;

@@ -86,9 +86,10 @@ public class SysUserController {
     @GetMapping("/me")
     public Result<SysUser> getCurrentUser() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        String username = auth.getName();
+        // principal 是 JwtAuthenticationFilter 中设置的 SysUser 对象
+        SysUser principal = (SysUser) auth.getPrincipal();
 
-        SysUser user = userService.getUserByUsername(username);
+        SysUser user = userService.getUserByUsername(principal.getUsername());
         user.setPassword(null);
         return Result.success(user);
     }

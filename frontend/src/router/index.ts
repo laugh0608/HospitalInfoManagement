@@ -4,17 +4,26 @@ import { getToken } from '@/utils/token';
 import { useUserStore } from '@/stores/user';
 import MainLayout from '@/layouts/MainLayout.vue';
 
+// 公共路由白名单（无需登录）
+const PUBLIC_ROUTES = ['/', '/login'];
+
 const routes: RouteRecordRaw[] = [
+  {
+    path: '/',
+    name: 'Home',
+    component: () => import('@/views/home/HomeView.vue'),
+    meta: { title: '首页', public: true },
+  },
   {
     path: '/login',
     name: 'Login',
     component: () => import('@/views/login/LoginView.vue'),
-    meta: { title: '登录', hidden: true },
+    meta: { title: '登录', hidden: true, public: true },
   },
   {
-    path: '/',
+    path: '/console',
     component: MainLayout,
-    redirect: '/dashboard',
+    redirect: '/console/dashboard',
     children: [
       {
         path: 'dashboard',
@@ -71,10 +80,11 @@ const router = createRouter({
 router.beforeEach(async (to, _from, next) => {
   const token = getToken();
 
-  if (to.path === '/login') {
-    // 已登录用户访问登录页，重定向到首页
-    if (token) {
-      next({ path: '/' });
+  // 公共路由直接放行
+  if (PUBLIC_ROUTES.includes(to.path)) {
+    // 已登录用户访问登录页，重定向到管理后台
+    if (to.path === '/login' && token) {
+      next({ path: '/console' });
     } else {
       next();
     }
