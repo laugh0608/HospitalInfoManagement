@@ -201,7 +201,7 @@ public class DbLoggingService {
         sqlLogBuffer.computeIfAbsent(tableName, k -> Collections.synchronizedList(new ArrayList<>())).add(sqlLog);
 
         if (sqlLogBuffer.get(tableName).size() >= batchSize) {
-            flushTable("sql_log", sqlLogBuffer, tableName);
+            flushTable(tableName, sqlLogBuffer);
         }
     }
 
@@ -215,7 +215,7 @@ public class DbLoggingService {
         auditLogBuffer.computeIfAbsent(tableName, k -> Collections.synchronizedList(new ArrayList<>())).add(auditLog);
 
         if (auditLogBuffer.get(tableName).size() >= batchSize) {
-            flushTable("audit_log", auditLogBuffer, tableName);
+            flushTable(tableName, auditLogBuffer);
         }
     }
 
@@ -226,10 +226,12 @@ public class DbLoggingService {
         if (!logAccess || !running.get()) return;
 
         String tableName = getTableName("access_log", accessLog.getRequestTime());
+        log.debug("记录访问日志: tableName={}, url={}", tableName, accessLog.getUrl());
         accessLogBuffer.computeIfAbsent(tableName, k -> Collections.synchronizedList(new ArrayList<>())).add(accessLog);
 
         if (accessLogBuffer.get(tableName).size() >= batchSize) {
-            flushTable("access_log", accessLogBuffer, tableName);
+            log.debug("缓冲区已满，刷新表: {}", tableName);
+            flushTable(tableName, accessLogBuffer);
         }
     }
 
@@ -237,40 +239,53 @@ public class DbLoggingService {
      * 刷新所有缓冲日志
      */
     public synchronized void flush() {
+        log.debug("开始刷新缓冲区: sql_log={}, audit_log={}, access_log={}",
+                sqlLogBuffer.size(), auditLogBuffer.size(), accessLogBuffer.size());
+
         // 刷新所有表
-        sqlLogBuffer.keySet().forEach(tableName -> flushTable("sql_log", sqlLogBuffer, tableName));
-        auditLogBuffer.keySet().forEach(tableName -> flushTable("audit_log", auditLogBuffer, tableName));
-        accessLogBuffer.keySet().forEach(tableName -> flushTable("access_log", accessLogBuffer, tableName));
+        sqlLogBuffer.keySet().forEach(tableName -> flushTable(tableName, sqlLogBuffer));
+        auditLogBuffer.keySet().forEach(tableName -> flushTable(tableName, auditLogBuffer));
+        accessLogBuffer.keySet().forEach(tableName -> flushTable(tableName, accessLogBuffer));
     }
 
     /**
      * 刷新指定表的日志
+     * @param actualTableName 实际的分表名，如 access_log_20260226
+     * @param buffer 对应的日志缓冲区
      */
-    private void flushTable(String type, Map<String, List<Object>> buffer, String tableName) {
-        List<Object> list = buffer.get(tableName);
-        if (list == null || list.isEmpty()) return;
+    private void flushTable(String actualTableName, Map<String, List<Object>> buffer) {
+        List<Object> list = buffer.get(actualTableName);
+        if (list == null || list.isEmpty()) {
+            log.debug("缓冲区为空: {}", actualTableName);
+            return;
+        }
+
+        // 从分表名提取基础表名，用于建表和参数设置
+        String baseTableName = getBaseTableName(actualTableName);
 
         synchronized (list) {
             if (list.isEmpty()) return;
 
             try {
-                // 创建表（如果不存在）
-                ensureTableExists(type, tableName);
+                // 创建分表（如果不存在）
+                ensureTableExists(baseTableName, actualTableName);
 
-                // 批量插入
-                String sql = getInsertSql(type);
+                // 批量插入到分表
+                String sql = getInsertSql(actualTableName);
+                log.debug("执行SQL: {}", sql);
                 try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
                     for (Object obj : list) {
-                        setInsertParams(pstmt, type, obj);
+                        setInsertParams(pstmt, baseTableName, obj);
                         pstmt.addBatch();
                     }
                     pstmt.executeBatch();
                 }
 
                 connection.commit();
+                log.info("成功写入 {} 条日志到表: {}", list.size(), actualTableName);
                 list.clear();
             } catch (Exception e) {
-                log.error("写入日志到表 {} 失败: {}", tableName, e.getMessage());
+                log.error("写入日志到表 {} 失败: {}", actualTableName, e.getMessage(), e);
                 try {
                     connection.rollback();
                 } catch (SQLException ex) {
@@ -342,24 +357,28 @@ public class DbLoggingService {
     }
 
     /**
+     * 从分表名中提取基础表名
+     * 例如：access_log_20260226 -> access_log
+     */
+    private String getBaseTableName(String tableName) {
+        if (tableName.startsWith("sql_log")) return "sql_log";
+        if (tableName.startsWith("audit_log")) return "audit_log";
+        if (tableName.startsWith("access_log")) return "access_log";
+        throw new IllegalArgumentException("Unknown log table: " + tableName);
+    }
+
+    /**
      * 获取插入 SQL
      */
-    private String getInsertSql(String type) {
-        return switch (type) {
-            case "sql_log" -> """
-                INSERT INTO sql_log (log_time, thread, sql_type, sql_text, duration, success, error_message, username, request_id)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """;
-            case "audit_log" -> """
-                INSERT INTO audit_log (log_time, username, user_id, action_type, module, description, target, ip, method, url, success, error_message)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """;
-            case "access_log" -> """
-                INSERT INTO access_log (request_time, request_id, method, url, ip, user_agent, status, duration, username)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """;
-            default -> throw new IllegalArgumentException("Unknown log type: " + type);
-        };
+    private String getInsertSql(String tableName) {
+        if (tableName.startsWith("sql_log")) {
+            return "INSERT INTO " + tableName + " (log_time, thread, sql_type, sql_text, duration, success, error_message, username, request_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        } else if (tableName.startsWith("audit_log")) {
+            return "INSERT INTO " + tableName + " (log_time, username, user_id, action_type, module, description, target, ip, method, url, success, error_message) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        } else if (tableName.startsWith("access_log")) {
+            return "INSERT INTO " + tableName + " (request_time, request_id, method, url, ip, user_agent, status, duration, username) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        }
+        throw new IllegalArgumentException("Unknown log table: " + tableName);
     }
 
     /**

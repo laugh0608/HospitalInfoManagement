@@ -1,8 +1,11 @@
 package com.graduation.hospital.config;
 
+import com.graduation.hospital.common.log.db.DbLoggingFilter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -30,6 +33,7 @@ import java.util.List;
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final DbLoggingFilter dbLoggingFilter;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -62,10 +66,23 @@ public class SecurityConfig {
             )
             // 添加 JWT 过滤器
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+            // 添加数据库日志过滤器（在 Security 之前）
+            .addFilterBefore(dbLoggingFilter, JwtAuthenticationFilter.class)
             // CORS 配置
             .cors(cors -> cors.configurationSource(corsConfigurationSource()));
 
         return http.build();
+    }
+
+    /**
+     * 禁用 DbLoggingFilter 的 Servlet 容器自动注册
+     * 该过滤器已通过 Security 过滤器链注册，避免重复执行
+     */
+    @Bean
+    public FilterRegistrationBean<DbLoggingFilter> dbLoggingFilterRegistration() {
+        FilterRegistrationBean<DbLoggingFilter> registration = new FilterRegistrationBean<>(dbLoggingFilter);
+        registration.setEnabled(false);
+        return registration;
     }
 
     /**

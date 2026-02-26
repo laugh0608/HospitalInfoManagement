@@ -6,7 +6,6 @@
     <property name="ERROR_LOG_PATH" value="logs/error"/>
     <property name="AUDIT_LOG_PATH" value="logs/audit"/>
     <property name="SQL_LOG_PATH" value="logs/sql"/>
-    <property name="ACCESS_LOG_PATH" value="logs/access"/>
     <property name="LOG_FILE" value="hospital"/>
 
     <!-- 彩色日志依赖的渲染类 -->
@@ -21,10 +20,6 @@
     <!-- 文件日志格式（使用 %X 获取 MDC 值） -->
     <property name="FILE_LOG_PATTERN"
               value="${FILE_LOG_PATTERN:-%d{yyyy-MM-dd HH:mm:ss.SSS} ${LOG_LEVEL_PATTERN:-%5p} [%X{requestId}] ${PID:- } --- [%t] %-40.40logger{39} : %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}}"/>
-
-    <!-- 访问日志格式 -->
-    <property name="ACCESS_LOG_PATTERN"
-              value="%d{yyyy-MM-dd HH:mm:ss.SSS} %a %l %u [%t] &quot;%r&quot; %s %b %D &quot;%{Referer}i&quot; &quot;%{User-Agent}i&quot;%n"/>
 
     <!-- ========== 控制台输出 ========== -->
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
@@ -108,19 +103,6 @@
         <discardingThreshold>0</discardingThreshold>
         <queueSize>256</queueSize>
         <appender-ref ref="SQL_FILE"/>
-    </appender>
-
-    <!-- ========== 访问日志文件 ========== -->
-    <appender name="ACCESS_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <encoder>
-            <pattern>${ACCESS_LOG_PATTERN}</pattern>
-            <charset>UTF-8</charset>
-        </encoder>
-        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>${ACCESS_LOG_PATH}/%d{yyyyMMdd}.log</fileNamePattern>
-            <maxHistory>30</maxHistory>
-            <totalSizeCap>500MB</totalSizeCap>
-        </rollingPolicy>
     </appender>
 
     <!-- ========== 自定义日志级别 ========== -->

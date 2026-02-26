@@ -82,6 +82,7 @@ public class RequestLoggingFilter implements Filter {
      * 获取客户端真实 IP
      */
     private String getClientIp(HttpServletRequest request) {
+        // noinspection DuplicatedCode
         String[] headers = {
             "X-Forwarded-For",
             "X-Real-IP",
@@ -99,6 +100,7 @@ public class RequestLoggingFilter implements Filter {
 
         return request.getRemoteAddr();
     }
+
 
     /**
      * 获取用户代理

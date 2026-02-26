@@ -29,7 +29,10 @@ public class DbLoggingFilter implements Filter {
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
             throws IOException, ServletException {
 
+        log.info("DbLoggingFilter 开始处理请求");
+
         if (dbLoggingService == null) {
+            log.warn("DbLoggingService 为空，过滤器不生效");
             chain.doFilter(request, response);
             return;
         }
@@ -56,6 +59,8 @@ public class DbLoggingFilter implements Filter {
             int status = httpResponse.getStatus();
             String username = getUsername();
 
+            log.info("记录访问日志: method={}, url={}, status={}", method, url, status);
+
             // 写入数据库（异步）
             dbLoggingService.logAccessFromEvent(
                     requestId,
@@ -67,6 +72,9 @@ public class DbLoggingFilter implements Filter {
                     duration,
                     username
             );
+
+            // 手动刷新以确保数据写入
+            dbLoggingService.flush();
 
             // 清理 MDC
             MDC.remove("requestId");

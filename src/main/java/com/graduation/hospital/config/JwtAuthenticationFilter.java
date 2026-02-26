@@ -10,6 +10,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -19,7 +20,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.UUID;
+
 
 /**
  * JWT 认证过滤器
@@ -40,16 +41,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
 
-        // 记录请求开始时间
-        long startTime = System.currentTimeMillis();
-        String requestId = UUID.randomUUID().toString().substring(0, 8);
-
-        // 记录请求日志（无论是否有 Token）
+        // 记录请求日志
         log.info("→ {} {} | IP: {} | UA: {}",
                 request.getMethod(),
                 request.getRequestURI(),
                 getClientIp(request),
                 getUserAgent(request));
+
+        long startTime = System.currentTimeMillis();
 
         String authHeader = request.getHeader(AUTH_HEADER);
 
