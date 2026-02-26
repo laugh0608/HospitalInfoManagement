@@ -28,6 +28,7 @@
 
 ## 主要功能
 
+- [x] 用户登录与注册（JWT 认证）
 - [ ] 病人信息管理
 - [ ] 病历跟踪
 - [ ] 预约管理
@@ -41,6 +42,14 @@
 HospitalInfoManagement/
 ├── src/              # Spring Boot 后端源码
 ├── frontend/         # Vue 3 前端项目
+│   └── src/
+│       ├── api/          # Axios 封装 + API 模块
+│       ├── layouts/      # 后台主布局
+│       ├── views/        # 页面组件
+│       ├── stores/       # Pinia 状态管理
+│       ├── router/       # 路由 + 导航守卫
+│       ├── types/        # TypeScript 类型定义
+│       └── utils/        # 工具函数
 ├── docs/             # 项目文档
 ├── build.gradle      # Gradle 构建配置
 └── README.md         # 项目说明

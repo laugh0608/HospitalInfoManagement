@@ -1,7 +1,7 @@
 # HospitalInfoManagement 开发规范
 
-> 文档版本：v26.2.1
-> 最后更新：2026-02-25
+> 文档版本：v26.2.3
+> 最后更新：2026-02-26
 > 维护团队：Hospital 开发组
 
 ---
@@ -439,39 +439,34 @@ public class GlobalExceptionHandler {
 ```
 frontend/src/
 ├── api/                    # API 服务层
-│   ├── index.ts           # axios 封装
-│   ├── patient.ts         # 病人 API
-│   ├── doctor.ts          # 医生 API
-│   └── ...
+│   ├── index.ts           # axios 实例 + 请求/响应拦截器
+│   └── modules/           # 按模块划分的 API
+│       └── auth.ts        # 认证 API（login/register/getCurrentUser）
+├── assets/               # 静态资源
+│   └── style.css         # 全局样式
 ├── components/            # 通用组件
-│   ├── common/           # 基础组件
-│   │   ├── Table.vue
-│   │   ├── Form.vue
-│   │   └── Modal.vue
-│   └── business/         # 业务组件
+├── layouts/              # 布局组件
+│   └── MainLayout.vue    # 侧边栏 + 顶栏 + 内容区
 ├── views/                 # 页面组件
-│   ├── patients/         # 病人管理
-│   │   ├── index.vue     # 列表页
-│   │   ├── detail.vue    # 详情页
-│   │   └── form.vue      # 表单页
-│   ├── doctors/
-│   ├── appointments/
-│   └── layout/           # 布局组件
+│   ├── login/            # 登录页
+│   ├── dashboard/        # 仪表盘
+│   ├── patient/          # 患者管理
+│   ├── doctor/           # 医生管理
+│   ├── department/       # 科室管理
+│   ├── appointment/      # 预约管理
+│   ├── medical-record/   # 病历管理
+│   └── medicine/         # 药品管理
 ├── stores/               # Pinia 状态管理
-│   ├── auth.ts           # 认证状态
-│   ├── user.ts           # 用户信息
-│   └── ...
+│   └── user.ts           # 用户认证 store
 ├── router/               # Vue Router 配置
-│   ├── index.ts          # 路由注册
-│   └── guards.ts         # 路由守卫
+│   └── index.ts          # 路由注册 + 导航守卫
 ├── types/                # TypeScript 类型定义
-│   ├── api.ts            # API 响应类型
+│   ├── api.ts            # API 响应类型（Result<T>、PageResult<T>）
+│   ├── auth.ts           # 认证类型（LoginRequest、AuthResponse）
 │   ├── entity.ts         # 实体类型
-│   └── ...
+│   └── router.d.ts       # 路由 meta 类型扩展
 ├── utils/                # 工具函数
-│   ├── format.ts         # 格式化
-│   └── validate.ts       # 校验
-├── styles/               # 全局样式
+│   └── token.ts          # Token 管理（localStorage）
 ├── App.vue
 └── main.ts
 ```
@@ -563,30 +558,38 @@ request.interceptors.response.use(
 
 | Store | 职责 | 持久化 |
 |-------|------|--------|
-| auth | 登录状态、Token | localStorage |
-| user | 用户信息、权限 | - |
-| settings | 系统配置 | localStorage |
+| user | 登录状态、Token、用户信息 | Token → localStorage |
 
 #### 3.4.2 Store 定义规范
 
 ```typescript
-// stores/auth.ts
+// stores/user.ts
 import { defineStore } from 'pinia';
-import { ref, computed } from 'vue';
+import { ref } from 'vue';
+import { getToken, setToken, removeToken } from '@/utils/token';
 
-export const useAuthStore = defineStore('auth', () => {
-  const token = ref<string>('');
-  const isLoggedIn = computed(() => !!token.value);
+export const useUserStore = defineStore('user', () => {
+  const token = ref<string | null>(getToken());
+  const user = ref<SysUser | null>(null);
 
-  const setToken = (newToken: string) => {
-    token.value = newToken;
-  };
+  async function login(form: LoginRequest) {
+    const { data: res } = await loginApi(form);
+    token.value = res.data.token;
+    setToken(res.data.token);
+  }
 
-  const logout = () => {
-    token.value = '';
-  };
+  async function fetchUserInfo() {
+    const { data: res } = await getCurrentUser();
+    user.value = res.data;
+  }
 
-  return { token, isLoggedIn, setToken, logout };
+  function logout() {
+    token.value = null;
+    user.value = null;
+    removeToken();
+  }
+
+  return { token, user, login, fetchUserInfo, logout };
 });
 ```
 
@@ -793,18 +796,35 @@ git commit -m "refactor(service): 抽取公共方法到基类"
 #### 5.1.4 前端路由守卫
 
 ```typescript
-// router/guards.ts
-import router from './index';
-import { useAuthStore } from '@/stores/auth';
+// router/index.ts
+import { getToken } from '@/utils/token';
+import { useUserStore } from '@/stores/user';
 
-router.beforeEach((to, from, next) => {
-  const authStore = useAuthStore();
+router.beforeEach(async (to, _from, next) => {
+  const token = getToken();
 
-  if (to.meta.requiresAuth && !authStore.isLoggedIn) {
-    next('/login');
+  if (to.path === '/login') {
+    token ? next({ path: '/' }) : next();
+    return;
+  }
+
+  if (!token) {
+    next({ path: '/login', query: { redirect: to.fullPath } });
+    return;
+  }
+
+  const userStore = useUserStore();
+  if (!userStore.user) {
+    try {
+      await userStore.fetchUserInfo();
+      next();
+    } catch {
+      userStore.logout();
+      next({ path: '/login', query: { redirect: to.fullPath } });
+    }
   } else {
     next();
-  });
+  }
 });
 ```
 
@@ -921,3 +941,4 @@ springdoc.group-configs[1].paths-to-match=/api/v2/**
 | 日期 | 版本 | 变更内容 | 变更人 |
 |------|------|----------|--------|
 | 2026-02-25 | v26.2.1 | 初始版本，创建开发规范文档 | - |
+| 2026-02-26 | v26.2.3 | 更新前端项目结构、Store 划分、路由守卫示例，对齐实际代码 | - |

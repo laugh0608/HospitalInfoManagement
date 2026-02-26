@@ -1,15 +1,32 @@
 # Security 配置说明
 
+## 认证方式
+
+项目使用 **JWT 无状态认证**，CSRF 已禁用。
+
+- Token 存储在请求头：`Authorization: Bearer <token>`
+- Token 有效期：24 小时（可配置）
+- 前端使用 localStorage 存储 Token
+
+### 公开接口（无需认证）
+
+| 路径 | 说明 |
+|------|------|
+| `/api/v1/users/login` | 用户登录 |
+| `/api/v1/users/register` | 用户注册 |
+| `/api/v1/hello` | 测试接口 |
+| `/api/v2/hello` | 测试接口 |
+| `/api/hello` | 测试接口 |
+| `/swagger-ui/**` | Swagger UI |
+| `/v3/api-docs/**` | OpenAPI 文档 |
+
 ## CORS（跨域资源共享）配置
 
 ### 当前配置
-- **允许的源**：`http://localhost:3000`、`http://127.0.0.1:3000`
+- **允许的源**：`http://localhost:3000`、`http://127.0.0.1:3000`、`http://localhost:5173`、`http://127.0.0.1:5173`
 - **允许的方法**：GET、POST、PUT、DELETE、PATCH、OPTIONS
-- **允许的请求头**：
-  - `Authorization` - 用于 JWT 或 Bearer token
-  - `Content-Type` - 请求内容类型
-  - `X-Requested-With` - AJAX 请求标识
-  - `X-XSRF-TOKEN` - CSRF token
+- **允许的请求头**：`*`（所有）
+- **暴露的响应头**：`Authorization`
 - **允许携带凭证**：`true`（支持 Cookie、Authorization header）
 - **预检请求缓存**：3600 秒（1 小时）
 
@@ -25,80 +42,12 @@ configuration.setAllowedOrigins(Arrays.asList(
 ## CSRF（跨站请求伪造）保护
 
 ### 当前配置
-- **默认启用 CSRF 保护**
-- **GET 请求**：不需要 CSRF token（安全读取操作）
-- **POST/PUT/DELETE/PATCH 请求**：需要 CSRF token
-- **测试接口**：`/api/hello` 暂时忽略 CSRF（仅用于测试连通性）
+- **CSRF 已禁用**：项目使用 JWT 无状态认证，不依赖 Cookie/Session，因此无需 CSRF 保护
+- 配置位置：`SecurityConfig.java` 中 `.csrf(AbstractHttpConfigurer::disable)`
 
-### CSRF Token 使用方式
+## 前端配置
 
-#### 方式 1：使用 Cookie（推荐）
-Spring Security 会自动在 Cookie 中设置 `XSRF-TOKEN`，前端需要：
-
-1. 从 Cookie 中读取 `XSRF-TOKEN`
-2. 在请求头中添加 `X-XSRF-TOKEN`
-
-**前端示例（fetch）：**
-```javascript
-// 获取 CSRF token
-function getCookie(name) {
-  const value = `; ${document.cookie}`;
-  const parts = value.split(`; ${name}=`);
-  if (parts.length === 2) return parts.pop().split(';').shift();
-}
-
-// 发送 POST 请求
-fetch('/api/patients', {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-    'X-XSRF-TOKEN': getCookie('XSRF-TOKEN')
-  },
-  credentials: 'include',  // 携带 Cookie
-  body: JSON.stringify(data)
-});
-```
-
-**前端示例（axios）：**
-```javascript
-import axios from 'axios';
-
-// 全局配置
-axios.defaults.withCredentials = true;
-axios.defaults.xsrfCookieName = 'XSRF-TOKEN';
-axios.defaults.xsrfHeaderName = 'X-XSRF-TOKEN';
-
-// 发送请求
-axios.post('/api/patients', data);
-```
-
-#### 方式 2：从响应头获取
-后端可以在响应头中返回 CSRF token（已配置 `exposedHeaders`）
-
-### 需要 CSRF 保护的接口
-
-所有修改数据的接口都需要 CSRF token：
-- ✅ POST `/api/patients` - 创建患者
-- ✅ PUT `/api/patients/{id}` - 更新患者
-- ✅ DELETE `/api/patients/{id}` - 删除患者
-- ❌ GET `/api/patients` - 查询患者（不需要）
-- ❌ GET `/api/hello` - 测试接口（已忽略）
-
-### 禁用 CSRF（仅特殊情况）
-
-如果某些接口确实不需要 CSRF 保护（如公开 API），可在 `SecurityConfig.java` 中添加：
-```java
-.csrf(csrf -> csrf
-    .ignoringRequestMatchers(
-        "/api/hello",
-        "/api/public/**"  // 公开 API 路径
-    )
-)
-```
-
-## 前端配置建议
-
-### Vite 代理配置（已配置）
+### Vite 代理配置
 ```typescript
 // vite.config.ts
 export default defineConfig({
@@ -106,7 +55,7 @@ export default defineConfig({
     port: 3000,
     proxy: {
       '/api': {
-        target: 'http://localhost:5000',
+        target: 'http://localhost:8080',
         changeOrigin: true
       }
     }
@@ -116,18 +65,29 @@ export default defineConfig({
 
 ### Axios 全局配置
 ```typescript
-// src/utils/request.ts
+// src/api/index.ts
 import axios from 'axios';
+import { getToken, removeToken } from '@/utils/token';
 
-const request = axios.create({
-  baseURL: '/api',
-  timeout: 10000,
-  withCredentials: true,  // 携带 Cookie
-  xsrfCookieName: 'XSRF-TOKEN',
-  xsrfHeaderName: 'X-XSRF-TOKEN'
+const http = axios.create({
+  baseURL: '/api/v1',
+  timeout: 15000,
 });
 
-export default request;
+// 请求拦截器：注入 Token
+http.interceptors.request.use((config) => {
+  const token = getToken();
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+// 响应拦截器：统一错误处理（401 自动跳登录页）
+http.interceptors.response.use(
+  (response) => { /* 业务错误判断 */ },
+  (error) => { /* HTTP 错误处理 */ }
+);
 ```
 
 ## 常见问题
@@ -152,8 +112,8 @@ export default request;
 
 ## 安全建议
 
-1. ✅ **生产环境**：修改 `allowedOrigins` 为实际域名，不使用通配符 `*`
-2. ✅ **HTTPS**：生产环境必须使用 HTTPS，Cookie 设置 `Secure` 标志
-3. ✅ **认证**：后续添加 JWT 或 Session 认证机制
-4. ✅ **敏感操作**：重要操作添加二次验证
-5. ✅ **日志审计**：记录所有修改操作的日志
+1. **生产环境**：修改 `allowedOrigins` 为实际域名，不使用通配符 `*`
+2. **HTTPS**：生产环境必须使用 HTTPS
+3. **JWT 密钥**：使用强密钥，定期轮换
+4. **敏感操作**：重要操作添加二次验证
+5. **日志审计**：记录所有修改操作的日志（已通过 AuditLogger 实现）

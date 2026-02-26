@@ -1,7 +1,7 @@
 # HospitalInfoManagement 项目规划
 
 > 文档状态：已完善
-> 最后更新：2026-02-25
+> 最后更新：2026-02-26
 
 ## 项目概述
 
@@ -34,7 +34,7 @@
 ### 核心功能模块
 
 #### 1. 用户管理模块
-- [ ] 用户注册与登录
+- [x] 用户注册与登录
 - [ ] 角色权限管理
 - [ ] 个人信息管理
 
@@ -144,25 +144,37 @@ src/main/java/com/graduation/hospital/
 
 ```
 frontend/src/
-├── api/           # API 服务层（axios 封装）
-├── components/    # 可复用组件
-│   ├── common/   # 通用组件（表格、表单、弹窗等）
-│   └── business/ # 业务组件
-├── views/        # 页面组件
-│   ├── patients/    # 病人管理页面
-│   ├── doctors/     # 医生管理页面
-│   ├── appointments/ # 预约管理页面
-│   ├── medical-records/ # 病历管理页面
-│   ├── medicines/   # 药品管理页面
-│   ├── statistics/ # 统计报表页面
-│   └── layout/      # 布局组件
-├── stores/       # Pinia 状态管理
-│   ├── auth.ts      # 认证状态
-│   ├── user.ts      # 用户信息
-│   └── patients.ts # 病人数据
-├── router/      # Vue Router 配置
-├── types/       # TypeScript 类型定义
-└── utils/       # 工具函数
+├── api/                    # API 服务层（axios 封装）
+│   ├── index.ts           # axios 实例 + 请求/响应拦截器
+│   └── modules/           # 按模块划分的 API
+│       └── auth.ts        # 认证相关 API
+├── assets/               # 静态资源
+│   └── style.css         # 全局样式
+├── components/           # 可复用组件
+├── layouts/              # 布局组件
+│   └── MainLayout.vue    # 侧边栏 + 顶栏 + 内容区
+├── views/                # 页面组件
+│   ├── login/            # 登录页
+│   ├── dashboard/        # 仪表盘
+│   ├── patient/          # 患者管理
+│   ├── doctor/           # 医生管理
+│   ├── department/       # 科室管理
+│   ├── appointment/      # 预约管理
+│   ├── medical-record/   # 病历管理
+│   └── medicine/         # 药品管理
+├── stores/               # Pinia 状态管理
+│   └── user.ts           # 用户认证 store
+├── router/               # Vue Router 配置
+│   └── index.ts          # 路由 + 导航守卫
+├── types/                # TypeScript 类型定义
+│   ├── api.ts            # API 响应类型
+│   ├── auth.ts           # 认证相关类型
+│   ├── entity.ts         # 实体类型
+│   └── router.d.ts       # 路由 meta 类型扩展
+├── utils/                # 工具函数
+│   └── token.ts          # Token 管理
+├── App.vue
+└── main.ts
 ```
 
 #### API 设计规范
@@ -177,40 +189,18 @@ frontend/src/
 #### 前端路由结构
 
 ```
-/                           # 根路由（重定向到登录或仪表盘）
-├── /login                  # 登录页（无需认证）
-├── /register               # 注册页（无需认证）
-└── /                       # 主布局（需认证）
-    ├── /dashboard          # 首页/仪表盘
-    ├── /patients           # 病人管理
-    │   ├── /patients/list         # 病人列表
-    │   ├── /patients/add          # 新增病人
-    │   └── /patients/:id          # 病人详情
-    ├── /doctors            # 医生管理
-    │   ├── /doctors/list          # 医生列表
-    │   ├── /doctors/add           # 新增医生
-    │   └── /doctors/:id           # 医生详情
-    ├── /departments       # 科室管理
-    ├── /appointments      # 预约管理
-    │   ├── /appointments/list    # 预约列表
-    │   ├── /appointments/add     # 新增预约
-    │   └── /appointments/calendar # 预约日历
-    ├── /medical-records   # 病历管理
-    │   ├── /medical-records/list  # 病历列表
-    │   ├── /medical-records/add   # 新增病历
-    │   └── /medical-records/:id   # 病历详情
-    ├── /medicines         # 药品管理
-    │   ├── /medicines/list       # 药品列表
-    │   ├── /medicines/stock      # 库存管理
-    │   └── /medicines/warning    # 库存预警
-    ├── /statistics        # 统计报表
-    │   ├── /statistics/overview  # 数据概览
-    │   ├── /statistics/patients # 病人统计
-    │   └── /statistics/revenue  # 营收统计
-    └── /settings          # 系统设置
-        ├── /settings/profile    # 个人资料
-        └── /settings/users      # 用户管理（仅管理员）
+/login                      # 登录页（无需认证）
+/                           # 主布局（需认证，MainLayout）
+├── /dashboard              # 仪表盘（默认首页）
+├── /patient                # 患者管理
+├── /doctor                 # 医生管理
+├── /department             # 科室管理
+├── /appointment            # 预约挂号
+├── /medical-record         # 病历管理
+└── /medicine               # 药品管理
 ```
+
+> **说明**：当前路由为一级结构，各模块内部子路由（列表/详情/新增等）将在后续业务开发时按需添加。
 
 **统一响应格式（Result.java）**：
 ```json
@@ -516,3 +506,4 @@ frontend/src/
 | 2026-02-25 | v1.1 | 新增数据库设计文档（database-design.md）和 API 设计文档（api-design.md） | - |
 | 2026-02-25 | v26.2.1 | 完善版本号规范；完成后端核心架构（Entity、Repository、Service、Controller） | - |
 | 2026-02-25 | v26.2.2 | 添加数据库日志服务，支持分表存储（DbLoggingService、DbLoggingFilter、SqlLoggingInterceptor） | - |
+| 2026-02-26 | v26.2.3 | 搭建前端基础设施：Element Plus/Vue Router/Pinia/Axios，实现登录页和后台主布局，修复后端登录白名单 | - |

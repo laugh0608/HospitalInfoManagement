@@ -10,12 +10,16 @@ docs/
 ├── project-plan.md              # 项目规划文档
 ├── database-design.md           # 数据库设计文档
 ├── api-design.md                # API 接口设计文档
+├── development-spec.md          # 开发规范文档
 ├── security-config.md           # 安全配置说明
+├── logging-spec.md              # 日志规范文档
 ├── run-config.md                # 运行配置说明
 ├── idea-encoding-fix.md         # IDEA 编码修复
 ├── development-logs/            # 开发日志（按周划分）
-    ├── README.md                # 开发日志说明
-    └── 2026-W03.md              # 示例：2026年第3周开发日志
+│   ├── README.md                # 开发日志说明
+│   ├── 2026-W03.md              # 2026年第3周：项目初始化
+│   ├── 2026-W04.md              # 2026年第4周：后端核心架构
+│   └── 2026-W09.md              # 2026年第9周：日志库 + 前端基础设施
 ```
 
 ## 文档说明
