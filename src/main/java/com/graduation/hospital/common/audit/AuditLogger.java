@@ -1,9 +1,11 @@
 package com.graduation.hospital.common.audit;
 
+import com.graduation.hospital.common.log.db.DbLoggingService;
 import com.graduation.hospital.entity.SysUser;
 import lombok.Builder;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -20,6 +22,9 @@ import java.time.LocalDateTime;
 @Slf4j
 @Component
 public class AuditLogger {
+
+    @Autowired(required = false)
+    private DbLoggingService dbLoggingService;
 
     /**
      * 操作类型枚举
@@ -105,6 +110,27 @@ public class AuditLogger {
             log.info(sb.toString());
         } else {
             log.warn(sb.toString());
+        }
+
+        // 写入 SQLite 数据库
+        if (dbLoggingService != null) {
+            try {
+                dbLoggingService.logAuditFromEvent(
+                        auditLog.getUsername(),
+                        auditLog.getUserId(),
+                        auditLog.getActionType() != null ? auditLog.getActionType().name() : null,
+                        auditLog.getModule(),
+                        auditLog.getDescription(),
+                        auditLog.getTarget(),
+                        auditLog.getIp(),
+                        auditLog.getMethod(),
+                        auditLog.getUrl(),
+                        auditLog.isSuccess(),
+                        auditLog.getErrorMessage()
+                );
+            } catch (Exception e) {
+                log.debug("审计日志写入数据库失败: {}", e.getMessage());
+            }
         }
     }
 

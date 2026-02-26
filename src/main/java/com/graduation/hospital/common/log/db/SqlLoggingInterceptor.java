@@ -1,72 +1,61 @@
 package com.graduation.hospital.common.log.db;
 
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.PreRemove;
-import jakarta.persistence.PreUpdate;
-import jakarta.persistence.Query;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.resource.jdbc.spi.StatementInspector;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.stereotype.Component;
-
-import java.lang.reflect.Method;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * SQL 日志拦截器
- * 记录所有 SQL 执行到数据库
+ * 通过 Hibernate statement_inspector 配置，由 Hibernate 实例化（非 Spring 管理），
+ * 因此通过 SpringContextHolder 延迟获取 DbLoggingService。
  */
 @Slf4j
-@Component
-@ConditionalOnProperty(name = "logging.db.log-sql", havingValue = "true")
 public class SqlLoggingInterceptor implements StatementInspector {
 
-    @Autowired(required = false)
-    private DbLoggingService dbLoggingService;
-
-    private static final Map<String, Long> sqlStartTimes = new ConcurrentHashMap<>();
-    private static final Map<String, String> sqlTexts = new ConcurrentHashMap<>();
-
-    private static int counter = 0;
-    private static final String COUNTER_LOCK = "counter";
+    private volatile DbLoggingService dbLoggingService;
 
     @Override
     public String inspect(String sql) {
-        if (dbLoggingService == null) {
-            return sql;
+        try {
+            DbLoggingService service = getDbLoggingService();
+            if (service == null) {
+                return sql;
+            }
+
+            String sqlType = extractSqlType(sql);
+            String username = getCurrentUsername();
+            String requestId = org.slf4j.MDC.get("requestId");
+
+            // StatementInspector 只有执行前回调，无法精确测量耗时，duration 记为 null
+            service.logSqlFromEvent(
+                    Thread.currentThread().getName(),
+                    sqlType,
+                    sql,
+                    null,
+                    true,
+                    null,
+                    username,
+                    requestId
+            );
+        } catch (Exception e) {
+            // 静默处理，避免影响正常 SQL 执行
+            log.debug("SQL 日志记录失败: {}", e.getMessage());
         }
-
-        // 生成唯一标识
-        String sqlKey = generateSqlKey();
-        long startTime = System.currentTimeMillis();
-
-        // 记录开始时间
-        sqlStartTimes.put(sqlKey, startTime);
-        sqlTexts.put(sqlKey, sql);
 
         return sql;
     }
 
     /**
-     * 记录 SQL 执行完成
+     * 延迟获取 DbLoggingService
      */
-    public static void logSqlComplete(String sql, boolean success, String errorMessage) {
-        // 找到对应的 SQL 并记录（这里简化处理）
-        try {
-            // 由于 Logback 无法直接回调，这里使用简化方式
-            // 实际生产环境可以使用 Aspect 或更复杂的拦截机制
-        } catch (Exception ignored) {
+    private DbLoggingService getDbLoggingService() {
+        if (dbLoggingService == null) {
+            try {
+                dbLoggingService = SpringContextHolder.getBean(DbLoggingService.class);
+            } catch (Exception e) {
+                // Spring 上下文尚未初始化，静默忽略
+            }
         }
-    }
-
-    /**
-     * 生成唯一 SQL 键
-     */
-    private synchronized String generateSqlKey() {
-        counter++;
-        return Thread.currentThread().getId() + "-" + counter + "-" + System.nanoTime();
+        return dbLoggingService;
     }
 
     /**
@@ -83,56 +72,18 @@ public class SqlLoggingInterceptor implements StatementInspector {
     }
 
     /**
-     * 实体 JPA 生命周期拦截
+     * 获取当前登录用户名
      */
-    @Component
-    public static class EntityInterceptor {
-
-        @Autowired(required = false)
-        private DbLoggingService dbLoggingService;
-
-        @PrePersist
-        public void prePersist(Object entity) {
-            logEntityOperation("INSERT", entity);
-        }
-
-        @PreUpdate
-        public void preUpdate(Object entity) {
-            logEntityOperation("UPDATE", entity);
-        }
-
-        @PreRemove
-        public void preRemove(Object entity) {
-            logEntityOperation("DELETE", entity);
-        }
-
-        private void logEntityOperation(String operation, Object entity) {
-            if (dbLoggingService != null) {
-                String username = getCurrentUsername();
-                String requestId = org.slf4j.MDC.get("requestId");
-
-                dbLoggingService.logSqlFromEvent(
-                        Thread.currentThread().getName(),
-                        operation,
-                        entity.getClass().getSimpleName(),
-                        0L,
-                        true,
-                        null,
-                        username,
-                        requestId
-                );
+    private String getCurrentUsername() {
+        try {
+            var auth = org.springframework.security.core.context.SecurityContextHolder
+                    .getContext().getAuthentication();
+            if (auth != null && auth.isAuthenticated()
+                    && !"anonymousUser".equals(auth.getPrincipal())) {
+                return auth.getName();
             }
+        } catch (Exception ignored) {
         }
-
-        private String getCurrentUsername() {
-            try {
-                var auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
-                if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getPrincipal())) {
-                    return auth.getName();
-                }
-            } catch (Exception ignored) {
-            }
-            return null;
-        }
+        return null;
     }
 }

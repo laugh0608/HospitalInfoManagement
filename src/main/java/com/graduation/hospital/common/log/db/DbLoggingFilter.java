@@ -1,6 +1,5 @@
 package com.graduation.hospital.common.log.db;
 
-import com.graduation.hospital.common.log.db.DbAppender.AccessLogEvent;
 import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
