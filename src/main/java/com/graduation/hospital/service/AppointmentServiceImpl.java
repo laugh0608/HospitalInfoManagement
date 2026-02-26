@@ -1,5 +1,6 @@
 package com.graduation.hospital.service;
 
+import com.graduation.hospital.common.audit.AuditLogger;
 import com.graduation.hospital.entity.Appointment;
 import com.graduation.hospital.entity.Department;
 import com.graduation.hospital.entity.Doctor;
@@ -27,6 +28,7 @@ public class AppointmentServiceImpl implements AppointmentService {
     private final PatientRepository patientRepository;
     private final DoctorRepository doctorRepository;
     private final DepartmentRepository departmentRepository;
+    private final AuditLogger auditLogger;
     private static final AtomicLong appointmentNoCounter = new AtomicLong(System.currentTimeMillis() % 100000);
 
     @Override
@@ -56,6 +58,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         }
         Appointment saved = appointmentRepository.save(appointment);
         log.info("创建预约成功: appointmentNo={}", saved.getAppointmentNo());
+        auditLogger.logCreate("预约管理", "创建预约: " + saved.getAppointmentNo(), saved.getId());
         return saved;
     }
 
@@ -98,6 +101,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         appointment.setStatus(status);
         Appointment updated = appointmentRepository.save(appointment);
         log.info("更新预约状态: id={}, status={}", id, status);
+        auditLogger.logUpdate("预约管理", "更新预约状态: " + status, id);
         return updated;
     }
 
@@ -110,6 +114,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         appointment.setCancelReason(reason);
         Appointment updated = appointmentRepository.save(appointment);
         log.info("取消预约: id={}, reason={}", id, reason);
+        auditLogger.logUpdate("预约管理", "取消预约", id);
         return updated;
     }
 
@@ -121,6 +126,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         }
         appointmentRepository.deleteById(id);
         log.info("删除预约成功: id={}", id);
+        auditLogger.logDelete("预约管理", "删除预约", id);
     }
 
     private String generateAppointmentNo() {

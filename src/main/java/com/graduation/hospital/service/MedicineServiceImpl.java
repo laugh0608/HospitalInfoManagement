@@ -1,5 +1,6 @@
 package com.graduation.hospital.service;
 
+import com.graduation.hospital.common.audit.AuditLogger;
 import com.graduation.hospital.entity.Medicine;
 import com.graduation.hospital.repository.MedicineRepository;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +16,7 @@ import java.util.List;
 public class MedicineServiceImpl implements MedicineService {
 
     private final MedicineRepository medicineRepository;
+    private final AuditLogger auditLogger;
 
     @Override
     @Transactional
@@ -30,6 +32,7 @@ public class MedicineServiceImpl implements MedicineService {
         }
         Medicine saved = medicineRepository.save(medicine);
         log.info("创建药品成功: medicineCode={}, name={}", saved.getMedicineCode(), saved.getName());
+        auditLogger.logCreate("药品管理", "添加药品: " + saved.getMedicineCode(), saved.getId());
         return saved;
     }
 
@@ -101,6 +104,7 @@ public class MedicineServiceImpl implements MedicineService {
         }
         Medicine updated = medicineRepository.save(existing);
         log.info("更新药品信息成功: id={}", id);
+        auditLogger.logUpdate("药品管理", "更新药品信息", id);
         return updated;
     }
 
@@ -112,6 +116,7 @@ public class MedicineServiceImpl implements MedicineService {
         }
         medicineRepository.deleteById(id);
         log.info("删除药品成功: id={}", id);
+        auditLogger.logDelete("药品管理", "删除药品", id);
     }
 
     @Override
@@ -125,6 +130,7 @@ public class MedicineServiceImpl implements MedicineService {
         medicine.setStock(newStock);
         Medicine updated = medicineRepository.save(medicine);
         log.info("更新药品库存: id={}, quantity={}, newStock={}", id, quantity, newStock);
+        auditLogger.logUpdate("药品管理", "更新库存: quantity=" + quantity, id);
         return updated;
     }
 

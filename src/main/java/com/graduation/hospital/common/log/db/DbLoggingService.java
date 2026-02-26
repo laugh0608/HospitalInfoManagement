@@ -59,6 +59,9 @@ public class DbLoggingService {
     @Value("${logging.db.log-access:true}")
     private boolean logAccess;
 
+    @Value("${logging.db.retention-days:90}")
+    private int retentionDays;
+
     private Connection connection;
     private final Map<String, List<Object>> sqlLogBuffer = new ConcurrentHashMap<>();
     private final Map<String, List<Object>> auditLogBuffer = new ConcurrentHashMap<>();
@@ -100,6 +103,15 @@ public class DbLoggingService {
             );
 
             log.info("数据库日志服务初始化完成: database={}, splitMode={}", databasePath, splitMode);
+
+            // 启动每日清理任务，首次延迟1分钟执行，之后每24小时执行一次
+            executor.scheduleAtFixedRate(
+                    this::cleanup,
+                    1,
+                    24 * 60,
+                    TimeUnit.MINUTES
+            );
+            log.info("日志清理任务已注册: retentionDays={}", retentionDays);
         } catch (Exception e) {
             log.error("数据库日志服务初始化失败", e);
         }
@@ -482,5 +494,95 @@ public class DbLoggingService {
         accessLog.setDuration(duration);
         accessLog.setUsername(username);
         logAccess(accessLog);
+    }
+
+    // ==================== 日志清理 ====================
+
+    /**
+     * 清理过期的日志分表
+     * 查询 sqlite_master 获取所有分表名，解析日期后缀，删除超过 retention-days 的表
+     */
+    private synchronized void cleanup() {
+        try {
+            if (connection == null || connection.isClosed()) {
+                return;
+            }
+
+            LocalDate cutoffDate = LocalDate.now().minusDays(retentionDays);
+            int droppedCount = 0;
+
+            // 查询所有日志分表
+            try (Statement stmt = connection.createStatement();
+                 ResultSet rs = stmt.executeQuery(
+                         "SELECT name FROM sqlite_master WHERE type='table' " +
+                         "AND (name LIKE 'sql_log_%' OR name LIKE 'audit_log_%' OR name LIKE 'access_log_%')")) {
+
+                List<String> tablesToDrop = new ArrayList<>();
+                while (rs.next()) {
+                    String tableName = rs.getString("name");
+                    LocalDate tableDate = parseTableDate(tableName);
+                    if (tableDate != null && tableDate.isBefore(cutoffDate)) {
+                        tablesToDrop.add(tableName);
+                    }
+                }
+
+                // 删除过期表
+                for (String table : tablesToDrop) {
+                    stmt.execute("DROP TABLE IF EXISTS " + table);
+                    droppedCount++;
+                    log.debug("删除过期日志表: {}", table);
+                }
+
+                if (droppedCount > 0) {
+                    connection.commit();
+                }
+            }
+
+            if (droppedCount > 0) {
+                log.info("日志清理完成: 删除 {} 个过期表, cutoffDate={}", droppedCount, cutoffDate);
+            } else {
+                log.debug("日志清理完成: 无过期表需要删除");
+            }
+        } catch (Exception e) {
+            log.error("日志清理任务执行失败", e);
+            try {
+                connection.rollback();
+            } catch (SQLException ex) {
+                log.error("回滚事务失败", ex);
+            }
+        }
+    }
+
+    /**
+     * 从分表名中解析日期
+     * 支持格式：xxx_YYYYMMDD、xxx_YYYYMM、xxx_YYYY、xxx_YYYYWxx
+     */
+    private LocalDate parseTableDate(String tableName) {
+        try {
+            // 提取日期后缀（最后一个下划线之后的部分）
+            String baseTableName = getBaseTableName(tableName);
+            String suffix = tableName.substring(baseTableName.length() + 1);
+
+            if (suffix.contains("W")) {
+                // 周格式：2026W09
+                String year = suffix.substring(0, 4);
+                String week = suffix.substring(5);
+                int weekNum = Integer.parseInt(week);
+                // 近似转换：周数 * 7 天
+                return LocalDate.of(Integer.parseInt(year), 1, 1).plusWeeks(weekNum - 1);
+            } else if (suffix.length() == 8) {
+                // 日格式：20260225
+                return LocalDate.parse(suffix, DateTimeFormatter.ofPattern("yyyyMMdd"));
+            } else if (suffix.length() == 6) {
+                // 月格式：202602 -> 取月末
+                return java.time.YearMonth.parse(suffix, DateTimeFormatter.ofPattern("yyyyMM")).atEndOfMonth();
+            } else if (suffix.length() == 4) {
+                // 年格式：2026 -> 取年末
+                return LocalDate.of(Integer.parseInt(suffix), 12, 31);
+            }
+        } catch (Exception e) {
+            log.debug("无法解析表名日期: {}", tableName);
+        }
+        return null;
     }
 }

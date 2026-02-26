@@ -1,12 +1,14 @@
 package com.graduation.hospital.controller;
 
 import com.graduation.hospital.common.Result;
+import com.graduation.hospital.common.audit.AuditLogger;
 import com.graduation.hospital.common.util.JwtUtil;
 import com.graduation.hospital.dto.AuthResponse;
 import com.graduation.hospital.dto.LoginRequest;
 import com.graduation.hospital.entity.SysRole;
 import com.graduation.hospital.entity.SysUser;
 import com.graduation.hospital.service.SysUserService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -25,14 +27,27 @@ public class SysUserController {
 
     private final SysUserService userService;
     private final JwtUtil jwtUtil;
+    private final AuditLogger auditLogger;
+    private final HttpServletRequest httpServletRequest;
 
     /**
      * 用户登录
      */
     @PostMapping("/login")
     public Result<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
-        // 验证用户名密码
-        SysUser user = userService.login(request.getUsername(), request.getPassword());
+        String ip = httpServletRequest.getRemoteAddr();
+        SysUser user;
+        try {
+            // 验证用户名密码
+            user = userService.login(request.getUsername(), request.getPassword());
+        } catch (Exception e) {
+            // 登录失败审计
+            auditLogger.logLoginFailed(request.getUsername(), ip, e.getMessage());
+            throw e;
+        }
+
+        // 登录成功审计
+        auditLogger.logLoginSuccess(user.getUsername(), user.getId(), ip);
 
         // 生成 JWT Token
         Set<String> roles = new HashSet<>();

@@ -406,16 +406,15 @@ SELECT * FROM sql_20260225 WHERE duration > 1000;
 | 功能 | 状态 | 说明 |
 |------|------|------|
 | 访问日志写入 SQLite | ✅ 已实现 | 通过 DbLoggingFilter 拦截 HTTP 请求 |
-| 审计日志写入 SQLite | ⚠️ 部分实现 | 仅写入文件日志，未写入数据库 |
-| SQL 日志写入 SQLite | ⚠️ 部分实现 | 拦截器已配置，但未写入数据库 |
-| 分表存储 | 🐛 BUG | 日志只写入主表，分表未实现 |
+| 审计日志写入 SQLite | ✅ 已实现 | 通过 AuditLogger 记录并写入数据库 |
+| SQL 日志写入 SQLite | ✅ 已实现 | 通过 SqlLoggingInterceptor 拦截 Hibernate SQL |
+| 分表存储 | ✅ 已实现 | 支持 YEAR/MONTH/WEEK/DAY 模式 |
 | 批量写入 | ✅ 已实现 | batch-size=100，flush-interval=5000ms |
+| 数据清理 | ✅ 已实现 | 根据 retention-days 配置自动清理过期分表 |
 
-### 11.9 已知问题
+### 11.9 注意事项
 
-#### 🐛 分表功能 BUG
-- **问题**：日志只写入主表（如 `access_log`），分表（如 `access_log_20260225`）为空
-- **原因**：`DbLoggingFilter` 直接写入主表，未调用分表逻辑
-- **修复**：修改日志写入逻辑，按分表名插入数据
-- **相关文件**：`common/log/db/DbLoggingFilter.java`、`common/log/db/DbLoggingService.java`
+- 日志清理任务每天自动执行，根据 `retention-days` 配置删除过期分表
+- 清理任务首次延迟 1 分钟执行，避免影响应用启动
+- 分表名格式需符合规范，否则无法解析日期进行清理
 ```

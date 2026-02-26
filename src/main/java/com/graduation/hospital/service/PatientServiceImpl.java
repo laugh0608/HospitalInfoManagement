@@ -1,5 +1,6 @@
 package com.graduation.hospital.service;
 
+import com.graduation.hospital.common.audit.AuditLogger;
 import com.graduation.hospital.entity.Patient;
 import com.graduation.hospital.repository.PatientRepository;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +19,7 @@ import java.util.concurrent.atomic.AtomicLong;
 public class PatientServiceImpl implements PatientService {
 
     private final PatientRepository patientRepository;
+    private final AuditLogger auditLogger;
     private static final AtomicLong patientNoCounter = new AtomicLong(System.currentTimeMillis() % 100000);
 
     @Override
@@ -32,6 +34,7 @@ public class PatientServiceImpl implements PatientService {
         patient.setPatientNo(generatePatientNo());
         Patient saved = patientRepository.save(patient);
         log.info("创建病人成功: patientNo={}, name={}", saved.getPatientNo(), saved.getName());
+        auditLogger.logCreate("病人管理", "创建病人档案: " + saved.getPatientNo(), saved.getId());
         return saved;
     }
 
@@ -87,6 +90,7 @@ public class PatientServiceImpl implements PatientService {
         }
         Patient updated = patientRepository.save(existing);
         log.info("更新病人信息成功: id={}", id);
+        auditLogger.logUpdate("病人管理", "更新病人信息", id);
         return updated;
     }
 
@@ -98,6 +102,7 @@ public class PatientServiceImpl implements PatientService {
         }
         patientRepository.deleteById(id);
         log.info("删除病人成功: id={}", id);
+        auditLogger.logDelete("病人管理", "删除病人档案", id);
     }
 
     @Override

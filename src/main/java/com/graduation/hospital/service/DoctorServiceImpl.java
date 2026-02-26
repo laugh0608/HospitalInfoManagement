@@ -1,5 +1,6 @@
 package com.graduation.hospital.service;
 
+import com.graduation.hospital.common.audit.AuditLogger;
 import com.graduation.hospital.entity.Department;
 import com.graduation.hospital.entity.Doctor;
 import com.graduation.hospital.repository.DepartmentRepository;
@@ -21,6 +22,7 @@ public class DoctorServiceImpl implements DoctorService {
 
     private final DoctorRepository doctorRepository;
     private final DepartmentRepository departmentRepository;
+    private final AuditLogger auditLogger;
     private static final AtomicLong doctorNoCounter = new AtomicLong(System.currentTimeMillis() % 10000);
 
     @Override
@@ -35,6 +37,7 @@ public class DoctorServiceImpl implements DoctorService {
         doctor.setIsAvailable(true);
         Doctor saved = doctorRepository.save(doctor);
         log.info("创建医生成功: doctorNo={}, name={}", saved.getDoctorNo(), saved.getName());
+        auditLogger.logCreate("医生管理", "创建医生: " + saved.getDoctorNo(), saved.getId());
         return saved;
     }
 
@@ -91,6 +94,7 @@ public class DoctorServiceImpl implements DoctorService {
         }
         Doctor updated = doctorRepository.save(existing);
         log.info("更新医生信息成功: id={}", id);
+        auditLogger.logUpdate("医生管理", "更新医生信息", id);
         return updated;
     }
 
@@ -102,6 +106,7 @@ public class DoctorServiceImpl implements DoctorService {
         }
         doctorRepository.deleteById(id);
         log.info("删除医生成功: id={}", id);
+        auditLogger.logDelete("医生管理", "删除医生", id);
     }
 
     @Override

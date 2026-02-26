@@ -1,5 +1,6 @@
 package com.graduation.hospital.service;
 
+import com.graduation.hospital.common.audit.AuditLogger;
 import com.graduation.hospital.entity.Doctor;
 import com.graduation.hospital.entity.MedicalRecord;
 import com.graduation.hospital.entity.Patient;
@@ -24,6 +25,7 @@ public class MedicalRecordServiceImpl implements MedicalRecordService {
     private final MedicalRecordRepository medicalRecordRepository;
     private final PatientRepository patientRepository;
     private final DoctorRepository doctorRepository;
+    private final AuditLogger auditLogger;
     private static final AtomicLong recordNoCounter = new AtomicLong(System.currentTimeMillis() % 100000);
 
     @Override
@@ -45,6 +47,7 @@ public class MedicalRecordServiceImpl implements MedicalRecordService {
         }
         MedicalRecord saved = medicalRecordRepository.save(medicalRecord);
         log.info("创建病历成功: recordNo={}", saved.getRecordNo());
+        auditLogger.logCreate("病历管理", "创建病历: " + saved.getRecordNo(), saved.getId());
         return saved;
     }
 
@@ -107,6 +110,7 @@ public class MedicalRecordServiceImpl implements MedicalRecordService {
         }
         MedicalRecord updated = medicalRecordRepository.save(existing);
         log.info("更新病历成功: id={}", id);
+        auditLogger.logUpdate("病历管理", "更新病历", id);
         return updated;
     }
 
@@ -118,6 +122,7 @@ public class MedicalRecordServiceImpl implements MedicalRecordService {
         }
         medicalRecordRepository.deleteById(id);
         log.info("删除病历成功: id={}", id);
+        auditLogger.logDelete("病历管理", "删除病历", id);
     }
 
     private String generateRecordNo() {

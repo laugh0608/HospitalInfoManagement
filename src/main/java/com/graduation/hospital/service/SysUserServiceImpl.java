@@ -1,5 +1,6 @@
 package com.graduation.hospital.service;
 
+import com.graduation.hospital.common.audit.AuditLogger;
 import com.graduation.hospital.entity.SysUser;
 import com.graduation.hospital.repository.SysUserRepository;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +18,7 @@ public class SysUserServiceImpl implements SysUserService {
 
     private final SysUserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final AuditLogger auditLogger;
 
     @Override
     @Transactional
@@ -28,6 +30,7 @@ public class SysUserServiceImpl implements SysUserService {
         user.setEnabled(true);
         SysUser saved = userRepository.save(user);
         log.info("用户注册成功: username={}", user.getUsername());
+        auditLogger.logCreate("用户管理", "注册用户: " + user.getUsername(), saved.getId());
         return saved;
     }
 
@@ -71,6 +74,7 @@ public class SysUserServiceImpl implements SysUserService {
         }
         SysUser updated = userRepository.save(existing);
         log.info("更新用户信息成功: id={}", id);
+        auditLogger.logUpdate("用户管理", "更新用户信息", id);
         return updated;
     }
 
@@ -82,6 +86,7 @@ public class SysUserServiceImpl implements SysUserService {
         }
         userRepository.deleteById(id);
         log.info("删除用户成功: id={}", id);
+        auditLogger.logDelete("用户管理", "删除用户", id);
     }
 
     @Override
@@ -104,6 +109,7 @@ public class SysUserServiceImpl implements SysUserService {
         user.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(user);
         log.info("修改密码成功: userId={}", id);
+        auditLogger.logAction(AuditLogger.ActionType.PASSWORD_CHANGE, "用户管理", "修改密码", "userId=" + id, true, null);
     }
 
     @Override
@@ -113,6 +119,7 @@ public class SysUserServiceImpl implements SysUserService {
         user.setEnabled(true);
         userRepository.save(user);
         log.info("启用用户: id={}", id);
+        auditLogger.logAction(AuditLogger.ActionType.PERMISSION_CHANGE, "用户管理", "启用用户", "userId=" + id, true, null);
     }
 
     @Override
@@ -122,5 +129,6 @@ public class SysUserServiceImpl implements SysUserService {
         user.setEnabled(false);
         userRepository.save(user);
         log.info("禁用用户: id={}", id);
+        auditLogger.logAction(AuditLogger.ActionType.PERMISSION_CHANGE, "用户管理", "禁用用户", "userId=" + id, true, null);
     }
 }

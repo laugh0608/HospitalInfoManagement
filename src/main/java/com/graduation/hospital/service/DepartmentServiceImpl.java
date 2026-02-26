@@ -1,5 +1,6 @@
 package com.graduation.hospital.service;
 
+import com.graduation.hospital.common.audit.AuditLogger;
 import com.graduation.hospital.entity.Department;
 import com.graduation.hospital.repository.DepartmentRepository;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +16,7 @@ import java.util.List;
 public class DepartmentServiceImpl implements DepartmentService {
 
     private final DepartmentRepository departmentRepository;
+    private final AuditLogger auditLogger;
 
     @Override
     @Transactional
@@ -27,6 +29,7 @@ public class DepartmentServiceImpl implements DepartmentService {
         }
         Department saved = departmentRepository.save(department);
         log.info("创建科室成功: code={}, name={}", saved.getCode(), saved.getName());
+        auditLogger.logCreate("科室管理", "创建科室: " + saved.getCode(), saved.getId());
         return saved;
     }
 
@@ -65,6 +68,7 @@ public class DepartmentServiceImpl implements DepartmentService {
         }
         Department updated = departmentRepository.save(existing);
         log.info("更新科室信息成功: id={}", id);
+        auditLogger.logUpdate("科室管理", "更新科室信息", id);
         return updated;
     }
 
@@ -76,6 +80,7 @@ public class DepartmentServiceImpl implements DepartmentService {
         }
         departmentRepository.deleteById(id);
         log.info("删除科室成功: id={}", id);
+        auditLogger.logDelete("科室管理", "删除科室", id);
     }
 
     @Override
